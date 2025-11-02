@@ -1,0 +1,17 @@
+<meta>
+    <!--Nadoory-->
+    
+    <script src="sourceC.lua" type="client" />
+    <script src="sourceS.lua" type="server" />
+	
+    <!--FONTS-->
+	<file src="Tajawal-Bold.ttf" />
+	<file src="Tajawal-Black.ttf" />
+	
+    
+    <!-- LICENSE SYSTEM ICONS -->
+    <file src="licensecar.png" />
+    <file src="licensebike.png" />
+    <file src="licensefisher.png" />
+    
+</meta>

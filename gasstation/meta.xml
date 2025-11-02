@@ -1,0 +1,23 @@
+<meta>
+<script src="client.lua" type="client"/>
+<script src="server.lua" type="server"/>
+<file src="Textures.txd" type="client"/>
+<file src="Building.dff" type="client"/>
+<file src="Building.col" type="client"/>
+
+<file src="Gaspump.dff" type="client"/>
+<file src="Gaspump.col" type="client"/>
+
+
+<file src="Furniture.dff" type="client"/>
+<file src="Furniture.col" type="client"/>
+
+<file src="laeroad38.dff" type="client"/>
+<file src="laeroad38.col" type="client"/>
+
+<map src="top-mapping.map" dimension="0"></map>
+    
+<script src="mapEditorScriptingExtension_s.lua" type="server"></script>
+<script src="mapEditorScriptingExtension_c.lua" type="client" validate="false"></script>
+
+</meta>

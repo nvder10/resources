@@ -1,0 +1,9 @@
+<resource>
+    <info name="Job Center" author="Nader" version="1.0" type="script" />
+    
+    <!-- client scripts -->
+    <script src = "server.lua" type="server"/>
+    <script src="client.lua" type="client" />
+
+
+</resource>

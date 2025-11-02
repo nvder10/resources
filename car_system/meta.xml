@@ -1,0 +1,19 @@
+<meta>
+    <info author="Nadoory" version="1.0" name="Car System" description="نظام متكامل للسيارات - معرض + جراج + نظام قيادة" />
+    
+    <!-- السيرفر -->
+    <script src="server.lua" type="server" />
+    
+    <!-- الكلينت -->
+    <script src="client.lua" type="client" />
+    
+    <!-- ملفات -->
+    <file src="images/car_key.png" />
+    <file src="images/kia_forte.png" />
+    <file src="images/golfr.png" />
+    <file src="images/toyotatundra.png" />
+    <file src="images/mercedese190.png" />
+    <file src="images/bmwe39.png" />        
+    <oop>true</oop>
+    <min_mta_version server="1.5.8" client="1.5.8" />
+</meta>

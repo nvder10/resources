@@ -1,0 +1,19 @@
+<meta>
+    <info author="Paradise Roleplay" version="1.2" name="Paradise Panel" description="نظام لوحة التحكم Paradise - تصميم محسن بخطوط Tajawal" />
+    
+    <!-- السكريبتات -->
+    <script src="client.lua" type="client" />
+    <script src="server.lua" type="server" />
+    
+    <!-- الملفات -->
+    <file src="images/logo.png" />
+    
+    <!-- الخطوط -->
+    <file src="fonts/Tajawal-Bold.ttf" />
+    <file src="fonts/Tajawal-Black.ttf" />
+    
+    <!-- التصديرات -->
+    <export function="formatMoney" type="client" />
+    <export function="loadPlayerSettings" type="server" />
+    <export function="savePlayerSettings" type="server" />
+</meta>

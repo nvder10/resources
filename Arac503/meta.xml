@@ -1,0 +1,6 @@
+<meta>
+    <info author='merthcs' name='Arac' />
+	   <script src='client.lua' type='client' />
+	   <file src='arac.txd' />
+	   <file src='arac.dff' />
+</meta>

@@ -1,0 +1,10 @@
+<meta>
+<info author="Mike" description="www.sparrow-mta.blogspot.com" version="1.0" type="script" />
+<script src="client.lua" type="client" cache="false"/>
+<file src="model.txd" type="client"/>
+<file src="model.dff" type="client"/>
+<file src="model.col" type="client"/>
+<map src="Map.map" dimension="0"></map>
+<script src="mapEditorScriptingExtension_s.lua" type="server"></script>
+<script src="mapEditorScriptingExtension_c.lua" type="client" validate="false"></script>
+</meta>

@@ -1,0 +1,7 @@
+<meta>
+	<info author="by iManGaaX" name="Inventory System" />
+
+	<script src="sourceC.lua" type="client" />
+
+	<file src="inventory.png" />
+</meta>

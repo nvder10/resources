@@ -1,0 +1,22 @@
+
+<!-- https://sparrow-mta.blogspot.com/ -->
+<!-- https://discord.gg/DzgEcvy -->
+
+
+<meta>
+    
+    <script src="server.lua" type="client" />
+    
+    <file src="hosp.txd" />
+    <file src="hosp.dff" />
+    <file src="hosp.col" />
+	
+	<map src="ls_hospital_map.map" dimension="0"></map>
+
+    <script src="mapEditorScriptingExtension_s.lua" type="server"></script>
+    <script src="mapEditorScriptingExtension_c.lua" type="client" validate="false"></script>
+    
+</meta>
+
+<!-- https://sparrow-mta.blogspot.com/ -->
+<!-- https://discord.gg/DzgEcvy -->

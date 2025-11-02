@@ -1,0 +1,8 @@
+<meta>
+    <info author="NaderBasha" type="script" name="Farmer Job" version="1.0"/>
+    <script src="client.lua" type="client"/>
+    <script src="server.lua" type="server"/>
+    <file src="images/boxseed.png"/>
+    <file src="images/seed.png"/>
+    <file src="images/p1.png"/>
+</meta>

@@ -1,0 +1,10 @@
+<meta>
+    <info author="/Nadoory" type="script" description="نظام تصليح السيارات الأوتوماتيكي" version="1.0"/>
+    
+
+    <script src="repairC.lua" type="client"/>
+    <script src="repairS.lua" type="server"/>
+    
+
+    <file src="Tajawal-Bold.ttf"/>
+</meta>

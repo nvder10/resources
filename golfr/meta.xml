@@ -1,0 +1,7 @@
+<meta>
+    <info author='merthcs' name='Arac' />
+	   <script src='client.lua' type='client' />
+	   <file src='arac.txd' />
+	   <file src='arac.dff' />
+	   <min_mta_version client="1.5.7-9.20642" />
+</meta>

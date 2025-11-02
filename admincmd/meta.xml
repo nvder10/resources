@@ -1,0 +1,4 @@
+<meta>
+    <info author="Nader" version="1.0" type="script" name="Admin Commands"/>
+    <script src="server.lua" type="server"/>
+</meta>

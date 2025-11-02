@@ -1,0 +1,17 @@
+<meta>
+    <!--Nadoory-->
+    
+	<script src="j_jobC.lua" type="client" />
+
+
+	
+    <!--FONTS-->
+	<file src="Tajawal-Bold.ttf" />
+	<file src="Tajawal-Black.ttf" />
+	
+	<!--iCONS-->
+	<file src="taxi.png" />
+    <file src="bus.png" />
+    <file src="twsel.png" />
+    
+</meta>
