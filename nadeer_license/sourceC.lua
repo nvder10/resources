@@ -85,17 +85,17 @@ local currentTestData = {
 local loadedTextures = {}
 
 local colors = {
-    background = {3, 20, 23},
-    primary = {52, 171, 173},
+    background = {3, 20, 23}, -- لون غامق اكتر
+    primary = {52, 171, 173},-- ودا اللون الفاتح الي بنستعملو برضو
     text = {255, 255, 255},
-    secondary = {10, 40, 45},
+    secondary = {10, 40, 45}, --لون الخلفيات
     error = {255, 100, 100},
-    success = {100, 255, 100},
+    success = {100, 255, 100},     
     dark = {50, 50, 50}
 }
 
-local backgroundColor = colors.background
-local primaryColor = colors.primary
+local backgroundColor = colors.background   
+local primaryColor = colors.primary 
 local textColor = colors.text
 local secondaryColor = colors.secondary
 

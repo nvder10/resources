@@ -1,24 +1,28 @@
 <meta>
-    <info author="Maxime - OwlGaming MTA Server Development Team" type="script" description="Account System" />
+    <info author="Maxime - Nadoory Yasta :)" type="script" description="Account System" />
 
     <script src="login-panel/server.lua" type="server" />
     <script src="login-panel/client.lua" type="client" />
+    
+    <!--الصور وكدا :)-->
+    <file src="login-panel/background.png" />
+    <file src="login-panel/logopr.png" />
+    <file src="login-panel/user.png" />
+    <file src="login-panel/pass.png" />
+    <file src="login-panel/pass1.png" />
+    <file src="login-panel/email.png" />
+    <file src="login-panel/bkg1.png" />
+    <file src="login-panel/bkg2.png" />
+    <file src="login-panel/button.png" />
 
-    <file src="login-panel/login_window.png" />
-    <file src="login-panel/register_window.png" />
+    <!-- ملفات الصوت -->
+    <file src="login-panel/click.mp3" />
+    <file src="click.mp3" />
 
-    <file src="login-panel/login.png" />
-    <file src="login-panel/register.png" />
+    <!-- الخطوط العربية -->
+    <file src="Tajawal-Bold.ttf" />
+    <file src="Tajawal-Regular.ttf" />
 
-    <file src="login-panel/sh.png" />
-    <file src="login-panel/shr.png" />
-
-    <file src="login-panel/cancel.png" />
-    <file src="login-panel/cancel2.png" />
-
-    <file src="login-panel/signup.png" />
-    <file src="login-panel/signup2.png" />
-    <file src="login-panel/OwlLogo7.png" />
 
     <script src="g_events.lua" type="server" />
     <script src="g_events.lua" type="client" />
@@ -41,18 +45,13 @@
 
     <script src="c_create_character.lua" type="client" />
     <script src="s_create_character.lua" type="server" />
-    
-	<file src="Tajawal-Bold.ttf" />
-	<file src="Tajawal-Black.ttf" />
-    <file src="Tajawal-Regular.ttf" />
-    
 
     <script src="c_options.lua" type="client" />
 
     <script src="c_update.lua" type="client" />
 
-	<script src="f10-settings\c_f10_settings.lua" type="client" />
-	<script src="f10-settings\s_f10_settings.lua" type="server" />
+	<script src="f10-settings/c_f10_settings.lua" type="client" />
+	<script src="f10-settings/s_f10_settings.lua" type="server" />
 
 	<script src="rules_apps/server_rules_s.lua" type="server" />
     <script src="rules_apps/server_rules_c.lua" type="client" />
@@ -66,13 +65,6 @@
 
     <export function="updateAccountSettings" type="client" />
 
-    <file src="login-panel/background.png" type="client" />
-    <file src="login-panel/user.png" type="client" />
-    <file src="login-panel/pass.png" type="client" />
-    <file src="login-panel/email.png" type="client" />
-
-
-    <file src="img/newchar.png" />
     <file src="img/000.png" />
     <file src="img/007.png" />
     <file src="img/009.png" />

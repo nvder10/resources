@@ -1,7 +1,7 @@
 --Globals
 local lUsername, tUsername, lPassword, tPassword, chkRememberLogin, bLogin, bRegister, defaultingTimer = nil
 local newsTitle, newsText, newsAuthor
-local loginTitleText = "Paradise Roleplay"
+local loginTitleText = "OwlGaming MTA Roleplay"
 local old_screen
 --Settings block for c_characters.lua/line 87
 loginScreens = {
@@ -193,7 +193,7 @@ end
 addEventHandler("accounts:error:window", getRootElement(), LoginScreen_showWarningMessage)
 
 function defaultLoginText()
-	loginTitleText = "Paradise Roleplay"
+	loginTitleText = "OwlGaming MTA Roleplay"
 end
 
 addEventHandler("accounts:login:attempt", getRootElement(),

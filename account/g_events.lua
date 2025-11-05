@@ -20,6 +20,7 @@ addEvent("onCharacterLogin", true)
 addEvent("onClientChangeChar", false)
 addEvent("account:changingchar", true)
 
+
 -- Shared variables
 scriptVersion = exports.global:getScriptVersion()
 newsURL = "http://owlgaming.net/server/news.php"

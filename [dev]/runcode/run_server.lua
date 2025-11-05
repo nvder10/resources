@@ -1,12 +1,12 @@
 ------------------------------------------
--- 		 	  	 GUIRuncode	 		 	-- -- Walid
+-- 		 	  	 GUIRuncode	 		 	-- -- 
 ------------------------------------------
 -- Developer: Braydon Davis	(xXMADEXx)	--
 -- File: run_server.lua					--
 -- Copyright 2013 (C) RoS				--
 -- All rights reserved.					--
 
--- Modified by anumaz, for owlgaming    --
+-- Modified by anumaz, for owlgaming    -- 
 ------------------------------------------
 sec = {{{{{{},{},{},{}}}}}}				--
 ------------------------------------------

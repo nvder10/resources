@@ -2,9 +2,9 @@ local heli = nil
 
 function updateRotor()
 	if isElement(heli) then
-		if not getVehicleEngineState( heli ) and getHelicopterRotorSpeed( heli ) > 0 then
-			local new = getHelicopterRotorSpeed( heli ) - 0.0012
-			setHelicopterRotorSpeed( heli, math.max( 0, new ) )
+		if not getVehicleEngineState( heli ) and getVehicleRotorSpeed( heli ) > 0 then
+			local new = getVehicleRotorSpeed( heli ) - 0.0012
+			setVehicleRotorSpeed( heli, math.max( 0, new ) )
 		end
 	else
 		disableRotorUpdate()

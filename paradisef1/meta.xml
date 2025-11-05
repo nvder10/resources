@@ -1,0 +1,7 @@
+<meta>
+    <info author="Nader" type="script" description="ParadiseF1 Panel - Crimson Theme" version="1.0" />
+    <script src="server.lua" type="server" />
+    <script src="client.lua" type="client" />
+    <file>Tajawal-Regular.ttf</file>
+    <file>logopr.png</file>
+</meta>

@@ -1,0 +1,28 @@
+<meta>
+    <info type="script" name="Loading Screen" author="Paradise" version="1.0" />
+    
+    <!-- الملفات -->
+    <script src="loadscreenS.lua" type="server" />
+    <script src="loadscreenC.lua" type="client" />
+    
+    <!-- الصور -->
+    <file src="load.png" />
+    <file src="line.png" />
+    <file src="logopr.png" />
+    <file src="start.png" />
+    <file src="stop.png" />
+    <file src="background.png" />
+    
+    <!-- الصوت -->
+    <file src="qur2an.mp3" />
+    
+    <!-- الخطوط -->
+    <file src="Tajawal-Regular.ttf" />
+    <file src="Tajawal-Black.ttf" />
+
+    <!-- تصريحات الأحداث -->
+    <export function="startPlayerLoading" type="server"/>
+    <export function="updatePlayerLoading" type="server"/>
+    <export function="finishPlayerLoading" type="server"/>
+
+</meta>

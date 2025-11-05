@@ -1,0 +1,26 @@
+<meta>
+    <info author="YourName" version="2.0" type="script" name="Modern Character System" description="نظام حديث لاختيار وإنشاء الشخصيات" />
+    
+    <script src="server.lua" type="server" />
+    <script src="client.lua" type="client" />
+    
+    <!-- الصور -->
+    <file src="charpanel.png" />
+    <file src="logopr.png" />
+    <file src="button.png" />
+    <file src="left_arrow.png" />
+    <file src="right_arrow.png" />
+    
+    <!-- الخطوط -->
+    <file src="Tajawal-Bold.ttf" />
+    <file src="Tajawal-Regular.ttf" />
+    
+    <!-- الأصوات -->
+    <file src="click.mp3" />
+    
+    <!-- التصديرات -->
+    <export function="openCharacterSystem" type="client" />
+    <export function="getCharacterSystemState" type="client" />
+    
+    <min_mta_version client="1.5.0" />
+</meta>

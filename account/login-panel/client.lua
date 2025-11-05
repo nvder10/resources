@@ -1,872 +1,1023 @@
---[[- By Nadooory]]
-
-local panel = {
-		login = {},
-		register = {},
-	}
-	
-local sw, sh = guiGetScreenSize()
-local fade = { }
-local logoScale = 0.5
-local logoSize = { sw*logoScale, sw*455/1920*logoScale }
-local uFont
-
--- إنشاء الخلفية خارج أي دالة علشان تبقى مستقلة
-local background = nil
-
-function createBackground()
-	if not isElement(background) then
-		background = guiCreateStaticImage(0, 0, sw, sh, ":account/login-panel/background.png", false)
-		guiSetAlpha(background, 0.9)
-		guiSetVisible(background, false)
-		-- نجبر الخلفية تبقى دايماً في الخلف
-		guiSetProperty(background, "AlwaysOnTop", "False")
-		
-		-- نضيف خاصية علشان متتقدمش على العناصر التانية
-		guiSetProperty(background, "AlwaysOnTop", "False")
-		guiSetProperty(background, "ZOrderChangeEnabled", "False")
-	end
-end
-
-function showBackground()
-	if not isElement(background) then
-		createBackground()
-	end
-	guiSetVisible(background, true)
-	-- نرسل الخلفية لآخر الخلفية
-	guiMoveToBack(background)
-end
-
-function hideBackground()
-	if isElement(background) then
-		guiSetVisible(background, false)
-	end
-end
-
--- دالة لتغيير لون الحقل عند التركيز
-function onFieldFocus(field)
-    guiSetProperty(field, "NormalEditColour", "FF40E0D0E6") -- تركواز أوضح
-    local line = getFieldLine(field)
-    if line then
-        guiSetProperty(line, "BackgroundColour", "FF40E0D0") -- تركواز للخط عند التركيز
-    end
-end
-
-function onFieldBlur(field)
-    guiSetProperty(field, "NormalEditColour", "FF40E0D0B4") -- تركواز عادي
-    local line = getFieldLine(field)
-    if line then
-        guiSetProperty(line, "BackgroundColour", "FFFFFFFF") -- أبيض للخط
-    end
-end
-
-function getFieldLine(field)
-    if field == panel.login.username then return panel.login.usernameLine
-    elseif field == panel.login.password then return panel.login.passwordLine
-    elseif field == panel.login.username2 then return panel.login.username2Line
-    elseif field == panel.login.password2 then return panel.login.password2Line
-    elseif field == panel.login.repassword then return panel.login.repasswordLine
-    elseif field == panel.login.email then return panel.login.emailLine
-    end
-    return nil
-end
-
-function startLoginSound()
-	local setting = loadMusicSetting()
-	if setting == 0 then
-		local sound = math.random( 1, 3 )
-		local bgMusic = playSound ( panel.sounds[ sound ][ 1 ], true )
-		if bgMusic then
-			setSoundVolume( bgMusic, panel.sounds[ sound ][ 2 ] )
-		end
-		setElementData(localPlayer, "bgMusic", bgMusic , false)
-	end
-	updateSoundLabel(setting)
-end
-
-function open_log_reg_pannel()
-	if not isElement ( panel.login.main ) then
-		-- إظهار الخلفية أولاً
-		showBackground()
-		
-		-- blur screen.
-		triggerEvent( 'hud:blur', resourceRoot, 'off', true )
-		setTimer( triggerEvent, 8000, 1, 'hud:blur', resourceRoot, 6, true, 0.1, nil )
-
-		-- sound effects.
-		triggerEvent("account:showMusicLabel", localPlayer)
-		startLoginSound()
-		
-		-- prepare.
-		showChat(false)
-		showCursor(true)
-		guiSetInputEnabled(true)
-		local Width,Height = 350,350
-		local X = (sw/2) - (Width/2)
-		local Y = (sh/2) - (Height/2)
-		ufont = ufont or guiCreateFont( ':interior_system/intNameFont.ttf', 11 )
-
-		panel.login.main = guiCreateStaticImage( X, Y, 350, 350, "/login-panel/login_window.png", false )
-		guiSetEnabled (panel.login.main, false)
-
-		panel.login.logo = guiCreateStaticImage( (sw-logoSize[1])/2, (sh-logoSize[2])/2 , logoSize[1], logoSize[2], "/login-panel/OwlLogo7.png", false )
-		local x, y = guiGetPosition( panel.login.logo, false )
-
-		-- إعداد الأبعاد والألوان للحقول
-		local fieldWidth, fieldHeight = 280, 40
-		local fieldX = (sw - fieldWidth) / 2 -- منتصف الشاشة
-
-		-- إنشاء العناصر الرئيسية
-        panel.login.login = guiCreateStaticImage( X + 50, Y + 349-120, 250, 36, "/login-panel/login.png", false )
-		addEventHandler("onClientGUIClick",panel.login.login,onClickBtnLogin, false )
-		addEventHandler( "onClientMouseEnter",panel.login.login,LoginSH)
-		addEventHandler("onClientMouseLeave",panel.login.login,SErem)
-
-		-- إنشاء حقول الإدخال في منتصف البانل
-		panel.login.username = guiCreateEdit(fieldX, Y + 220-120, fieldWidth, fieldHeight, "", false)
-		panel.login.password = guiCreateEdit(fieldX, Y + 295-120, fieldWidth, fieldHeight, "", false)
-		
-		guiSetFont( panel.login.username, ufont )
-		guiSetFont( panel.login.password, ufont )
-		guiEditSetMaxLength ( panel.login.username,25)
-		guiEditSetMasked ( panel.login.password, true )
-		guiSetProperty( panel.login.password, 'MaskCodepoint', '8226' )
-
-		-- إعداد ألوان الحقول
-		guiSetProperty(panel.login.username, "NormalTextColour", "FF40E0D0")
-		guiSetProperty(panel.login.username, "NormalEditColour", "FF40E0D0B4")
-		guiSetProperty(panel.login.password, "NormalTextColour", "FF40E0D0")
-		guiSetProperty(panel.login.password, "NormalEditColour", "FF40E0D0B4")
-
-		addEventHandler("onClientGUIChanged", panel.login.username, resetLogButtons)
-		addEventHandler("onClientGUIChanged", panel.login.password, resetLogButtons)
-		addEventHandler( "onClientGUIAccepted", panel.login.username, startLoggingIn)
-		addEventHandler( "onClientGUIAccepted", panel.login.password, startLoggingIn)
-
-		panel.login.remember = guiCreateCheckBox(X + 230,Y + 275-120,100,20,"(Remember me!)",false,false)
-		guiSetFont(panel.login.remember,"default-small")
-
-		panel.login.error = guiCreateLabel(X,Y + 325-120,364,31,"Error_login_tab",false)
-		guiLabelSetColor(panel.login.error,255,0,0)
-		guiLabelSetVerticalAlign(panel.login.error,"center")
-		guiLabelSetHorizontalAlign(panel.login.error,"center",false)
-		guiSetFont(panel.login.error,"default-bold-small")
-
-		panel.login.authen = guiCreateLabel(X,Y + 325-120,364,31,"Authen_login_tab",false)
-		guiLabelSetColor(panel.login.authen,0,255,0)
-		guiLabelSetVerticalAlign(panel.login.authen,"center")
-		guiLabelSetHorizontalAlign(panel.login.authen,"center",false)
-		guiSetFont(panel.login.authen,"default-bold-small")
-
-		-- إنشاء الخطوط البيضاء تحت الحقول
-		panel.login.usernameLine = guiCreateLabel(fieldX, Y + 260-120, fieldWidth, 2, "", false)
-		panel.login.passwordLine = guiCreateLabel(fieldX, Y + 335-120, fieldWidth, 2, "", false)
-		
-		guiSetProperty(panel.login.usernameLine, "AlwaysOnTop", "True")
-		guiSetProperty(panel.login.usernameLine, "BackgroundColour", "FFFFFFFF")
-		guiSetProperty(panel.login.passwordLine, "AlwaysOnTop", "True")
-		guiSetProperty(panel.login.passwordLine, "BackgroundColour", "FFFFFFFF")
-
-		-- العناصر الخاصة بالتسجيل
-		panel.login.register = guiCreateStaticImage( (sw - 250)/2, Y + 401-120, 250, 36, "/login-panel/signup.png", false )
-		addEventHandler("onClientGUIClick",panel.login.register,OnBtnRegister, false )
-		addEventHandler( "onClientMouseEnter",panel.login.register,SignupSH)
-		addEventHandler("onClientMouseLeave",panel.login.register,SErem)
-
-		panel.login.toplabel = guiCreateLabel(X - 70,Y + 388+70-120,500,30,"",false)
-		guiLabelSetColor(panel.login.toplabel,255,234,55)
-		guiLabelSetVerticalAlign(panel.login.toplabel,"center")
-		guiLabelSetHorizontalAlign(panel.login.toplabel,"center",false)
-		guiSetFont(panel.login.toplabel,"default-bold-small")
-		guiSetVisible(panel.login.toplabel,false)
-
-		-- حقول التسجيل في منتصف البانل
-		panel.login.username2 = guiCreateEdit(fieldX, Y + 215-120, fieldWidth, fieldHeight, "", false)
-		panel.login.password2 = guiCreateEdit(fieldX, Y + 290-120, fieldWidth, fieldHeight, "", false)
-		panel.login.repassword = guiCreateEdit(fieldX, Y + 365-120, fieldWidth, fieldHeight, "", false)
-		panel.login.email = guiCreateEdit(fieldX, Y + 435-120, fieldWidth, fieldHeight, "", false)
-		
-		guiEditSetMaxLength ( panel.login.username2,25)
-		guiEditSetMaxLength ( panel.login.password2,25)
-		guiEditSetMaxLength ( panel.login.repassword,25)
-		guiEditSetMaxLength ( panel.login.email,100)
-		guiEditSetMasked ( panel.login.password2, true )
-		guiEditSetMasked ( panel.login.repassword, true )
-		guiSetProperty(panel.login.password2, 'MaskCodepoint', '8226')
-		guiSetProperty(panel.login.repassword, 'MaskCodepoint', '8226')
-		
-		guiSetFont( panel.login.username2, ufont )
-		guiSetFont( panel.login.password2, ufont )
-		guiSetFont( panel.login.repassword, ufont )
-		guiSetFont( panel.login.email, ufont )
-		
-		-- إعداد ألوان حقول التسجيل
-		local registerFields = {panel.login.username2, panel.login.password2, panel.login.repassword, panel.login.email}
-		for _, field in ipairs(registerFields) do
-			guiSetProperty(field, "NormalTextColour", "FF40E0D0")
-			guiSetProperty(field, "NormalEditColour", "FF40E0D0B4")
-		end
-
-		-- خطوط حقول التسجيل
-		panel.login.username2Line = guiCreateLabel(fieldX, Y + 255-120, fieldWidth, 2, "", false)
-		panel.login.password2Line = guiCreateLabel(fieldX, Y + 330-120, fieldWidth, 2, "", false)
-		panel.login.repasswordLine = guiCreateLabel(fieldX, Y + 405-120, fieldWidth, 2, "", false)
-		panel.login.emailLine = guiCreateLabel(fieldX, Y + 475-120, fieldWidth, 2, "", false)
-		
-		local registerLines = {panel.login.username2Line, panel.login.password2Line, panel.login.repasswordLine, panel.login.emailLine}
-		for _, line in ipairs(registerLines) do
-			guiSetProperty(line, "AlwaysOnTop", "True")
-			guiSetProperty(line, "BackgroundColour", "FFFFFFFF")
-		end
-
-		guiSetVisible(panel.login.username2,false)
-		guiSetVisible(panel.login.password2,false)
-		guiSetVisible(panel.login.repassword,false)
-		guiSetVisible(panel.login.email,false)
-		guiSetVisible(panel.login.username2Line,false)
-		guiSetVisible(panel.login.password2Line,false)
-		guiSetVisible(panel.login.repasswordLine,false)
-		guiSetVisible(panel.login.emailLine,false)
-        panel.login.register2 = guiCreateStaticImage( X + 182, Y + 401+6+70-120, 143, 45, "/login-panel/register.png", false )
-		addEventHandler("onClientGUIClick",panel.login.register2,onClickBtnRegister, false )
-		addEventHandler( "onClientMouseEnter",panel.login.register2,Register2SH)
-		addEventHandler("onClientMouseLeave",panel.login.register2,SErem)
-		guiSetVisible(panel.login.register2,false)
-
-        panel.login.cancel = guiCreateStaticImage( X + 23, Y + 401+6+70-120, 143, 45, "/login-panel/cancel.png", false )
-		addEventHandler("onClientGUIClick",panel.login.cancel,onClickCancel, false )
-		addEventHandler( "onClientMouseEnter",panel.login.cancel,CancelSH)
-		addEventHandler("onClientMouseLeave",panel.login.cancel,SErem)
-		guiSetVisible(panel.login.cancel,false)
-
-		showCursor(true)
-
-		guiSetText(panel.login.error, "")
-		guiSetText(panel.login.authen, "")
-
-		-- إضافة إيفينتات التركيز على الحقول
-		addEventHandler("onClientGUIFocus", panel.login.username, function() onFieldFocus(panel.login.username) end)
-		addEventHandler("onClientGUIBlur", panel.login.username, function() onFieldBlur(panel.login.username) end)
-		addEventHandler("onClientGUIFocus", panel.login.password, function() onFieldFocus(panel.login.password) end)
-		addEventHandler("onClientGUIBlur", panel.login.password, function() onFieldBlur(panel.login.password) end)
-		addEventHandler("onClientGUIFocus", panel.login.username2, function() onFieldFocus(panel.login.username2) end)
-		addEventHandler("onClientGUIBlur", panel.login.username2, function() onFieldBlur(panel.login.username2) end)
-		addEventHandler("onClientGUIFocus", panel.login.password2, function() onFieldFocus(panel.login.password2) end)
-		addEventHandler("onClientGUIBlur", panel.login.password2, function() onFieldBlur(panel.login.password2) end)
-		addEventHandler("onClientGUIFocus", panel.login.repassword, function() onFieldFocus(panel.login.repassword) end)
-		addEventHandler("onClientGUIBlur", panel.login.repassword, function() onFieldBlur(panel.login.repassword) end)
-		addEventHandler("onClientGUIFocus", panel.login.email, function() onFieldFocus(panel.login.email) end)
-		addEventHandler("onClientGUIBlur", panel.login.email, function() onFieldBlur(panel.login.email) end)
-
-		local username, password = loadLoginFromXML()
-		if username ~= "" then
-			guiCheckBoxSetSelected ( panel.login.remember, true )
-			guiSetText ( panel.login.username, tostring(username))
-			guiSetText ( panel.login.password, tostring(password))
-		else
-			guiCheckBoxSetSelected ( panel.login.remember, false )
-			guiSetText ( panel.login.username, tostring(username))
-			guiSetText ( panel.login.password, tostring(password))
-		end
-		-- إضافة أيقونات للحقول
-        local iconSize = 25
-        local iconYOffset = 7
-
-        -- أيقونة اليوزرنيم
-        panel.login.userIcon = guiCreateStaticImage(fieldX - 30, Y + 220-120 + iconYOffset, iconSize, iconSize, ":account/login-panel/user.png", false)
-        guiSetVisible(panel.login.userIcon, true)
-
-        -- أيقونة الباسورد
-        panel.login.passIcon = guiCreateStaticImage(fieldX - 30, Y + 295-120 + iconYOffset, iconSize, iconSize, ":account/login-panel/pass.png", false)
-        guiSetVisible(panel.login.passIcon, true)
-
-        -- أيقونة الإيميل (للتسجيل)
-        panel.login.emailIcon = guiCreateStaticImage(fieldX - 30, Y + 435-120 + iconYOffset, iconSize, iconSize, ":account/login-panel/email.png", false)
-        guiSetVisible(panel.login.emailIcon, false)
-
-        -- أيقونة اليوزرنيم للتسجيل
-        panel.login.userIcon2 = guiCreateStaticImage(fieldX - 30, Y + 215-120 + iconYOffset, iconSize, iconSize, ":account/login-panel/user.png", false)
-        guiSetVisible(panel.login.userIcon2, false)
-
-        -- أيقونة الباسورد للتسجيل
-        panel.login.passIcon2 = guiCreateStaticImage(fieldX - 30, Y + 290-120 + iconYOffset, iconSize, iconSize, ":account/login-panel/pass.png", false)
-        guiSetVisible(panel.login.passIcon2, false)
-
-        -- أيقونة إعادة الباسورد
-        panel.login.repassIcon = guiCreateStaticImage(fieldX - 30, Y + 365-120 + iconYOffset, iconSize, iconSize, ":account/login-panel/pass.png", false)
-        guiSetVisible(panel.login.repassIcon, false)
-
-		guisSetEnabled( 'login', false )
-		guisSetPosition( 'login', (sw+Width)/2 )
-
-		-- fade the login tab in.
-		setTimer( fade.login, 8000, 1 , (sw+Width)/2 )
-
-		-- dynamic screen effect.
-		addEventHandler( 'onClientRender', root, slideScreen )
-
-				-- make sure screen isn't black.
-		fadeCamera ( true )
-				-- نجبر كل العناصر تبقى قدام الخلفية
-		for name, gui in pairs(panel.login) do
-			if gui and isElement(gui) and name ~= 'background' then
-				guiSetProperty(gui, "AlwaysOnTop", "True")
-			end
-		end
-
-		
-		-- بعد ما نعمل كل العناصر، نرسلهم قدام
-		setTimer(function()
-			-- نرسل كل العناصر قدام الخلفية
-			for name, gui in pairs(panel.login) do
-				if gui and isElement(gui) and name ~= 'background' then
-					guiBringToFront(gui)
-				end
-			end
-			
-			-- نتأكد إن الخلفية في الخلف
-			if isElement(background) then
-				guiMoveToBack(background)
-			end
-		end, 150, 1)
-
-	end
-end
-
--- الدوال المساعدة الأخرى تبقى كما هي
-function guisSetEnabled( part, state )
-	for index, gui in pairs( panel[ part ] ) do
-		if index ~= 'main' then
-			guiSetEnabled( gui , state )
-		end
-	end
-end
-
-function guisSetPosition( part, x_, y_ )
-	for index, gui in pairs( panel[ part ] ) do
-		if index ~= 'logo' then
-			local x, y = guiGetPosition( gui, false )
-			if x_ then
-				x = x + x_
-			end
-			if y_ then
-				y = y + y_
-			end
-			guiSetPosition( gui, x, y, false )
-		end
-	end
-end
-
-function fade.render( )
-	fade.cur = fade.cur + fade.dir
-	fade.logo_start = fade.logo_start + fade.logo_dir
-	if math.abs(fade.cur) <= fade.max then
-		guisSetPosition( 'login', fade.dir )
-		guiSetPosition( panel.login.logo, fade.logo_x, fade.logo_start, false )
-	else
-		guisSetEnabled( 'login', true )
-		removeEventHandler( 'onClientRender', root, fade.render )
-	end
-end
-
-function fade.login( max )
-	fade.cur = 0
-	fade.max = max
-	fade.dir = -fade.max/50
-	fade.logo_start = (sh-logoSize[2])/2
-	fade.logo_end = sh - logoSize[2]*3/2
-	fade.logo_dir = -(fade.logo_end-fade.logo_start)/50
-	fade.logo_x = (sw-logoSize[1])/2
-	addEventHandler( 'onClientRender', root, fade.render )
-end
-
-local speed = 0.01
-local moved = 0
-
-function slideScreen()
-	local matrix = { getCameraMatrix ( localPlayer ) }
-	matrix[1] = matrix[1] + speed
-	moved = moved + speed
-	if moved > 50 then
-		local scr = shuffleScreen()
-		moved = 0
-		setCameraMatrix ( scr[1], scr[2], scr[3], scr[4], scr[5], scr[6], 0, exports.global:getPlayerFov())
-	else
-		setCameraMatrix ( unpack(matrix) )
-	end
-end
-
-function LoginSH ()
-	guiStaticImageLoadImage(panel.login.login, "/login-panel/sh.png" )
-end
-
-function SignupSH ()
-	guiStaticImageLoadImage(panel.login.register, "/login-panel/signup2.png" )
-end
-
-function Register2SH ()
-	guiStaticImageLoadImage(panel.login.register2, "/login-panel/shr.png" )
-end
-
-function CancelSH ()
-	guiStaticImageLoadImage(panel.login.cancel, "/login-panel/cancel2.png" )
-end
-
-function SErem ()
-	guiStaticImageLoadImage(panel.login.login, "/login-panel/login.png" )
-	guiStaticImageLoadImage(panel.login.register, "/login-panel/signup.png" )
-	guiStaticImageLoadImage(panel.login.register2, "/login-panel/register.png" )
-	guiStaticImageLoadImage(panel.login.cancel, "/login-panel/cancel.png" )
-end
-
-function loadLoginFromXML()
-	local xml_save_log_File = xmlLoadFile ("@rememberme.xml")
-    if not xml_save_log_File then
-        xml_save_log_File = xmlCreateFile("@rememberme.xml", "login")
-    end
-    local usernameNode = xmlFindChild (xml_save_log_File, "username", 0)
-    local passwordNode = xmlFindChild (xml_save_log_File, "password", 0)
-    local username, password = usernameNode and exports.global:decryptString(xmlNodeGetValue(usernameNode), localPlayer) or "", passwordNode and exports.global:decryptString(xmlNodeGetValue(passwordNode), localPlayer) or ""
-    xmlUnloadFile ( xml_save_log_File )
-    return username, password
-end
-
-function saveLoginToXML(username, password)
-    local xml_save_log_File = xmlLoadFile ("@rememberme.xml")
-    if not xml_save_log_File then
-        xml_save_log_File = xmlCreateFile("@rememberme.xml", "login")
-    end
-	if (username ~= "") then
-		local usernameNode = xmlFindChild (xml_save_log_File, "username", 0)
-		local passwordNode = xmlFindChild (xml_save_log_File, "password", 0)
-		if not usernameNode then
-			usernameNode = xmlCreateChild(xml_save_log_File, "username")
-		end
-		if not passwordNode then
-			passwordNode = xmlCreateChild(xml_save_log_File, "password")
-		end
-		xmlNodeSetValue (usernameNode, exports.global:encryptString(username, localPlayer))
-		xmlNodeSetValue (passwordNode, exports.global:encryptString(password, localPlayer))
-	end
-    xmlSaveFile(xml_save_log_File)
-    xmlUnloadFile (xml_save_log_File)
-end
-addEvent("saveLoginToXML", true)
-addEventHandler("saveLoginToXML", getRootElement(), saveLoginToXML)
-
-function saveMusicSetting(state)
-	if not state then return false end
-	local xmlFile = xmlLoadFile("@rememberme.xml")
-	if not xmlFile then 
-		xmlFile = xmlCreateFile("@rememberme.xml", "login")
-	end
-
-	local settingNode = xmlFindChild(xmlFile, "loginMusic", 0)
-	if not settingNode then 
-		settingNode = xmlCreateChild(xmlFile, "loginMusic")
-	end
-
-	xmlNodeSetValue(settingNode, state)
-	xmlSaveFile(xmlFile)
-	xmlUnloadFile(xmlFile)
-
-	updateSoundLabel(state)
-end
-
-function loadMusicSetting()
-	local xmlFile = xmlLoadFile ("@rememberme.xml")
-	if not xmlFile then 
-		return saveMusicSetting(0)
-	end
-	
-	local settingNode = xmlFindChild(xmlFile, "loginMusic", 0)
-	local setting = xmlNodeGetValue(settingNode)
-	xmlUnloadFile(xmlFile)
-	return tonumber(setting)
-end
-
-function resetSaveXML()
-	local xml_save_log_File = xmlLoadFile ("@rememberme.xml")
-    if xml_save_log_File then
-		local username, password = xmlFindChild(xml_save_log_File, "username", 0), xmlFindChild (xml_save_log_File, "password", 0)
-		if username and password then 
-			xmlDestroyNode(username)
-			xmlDestroyNode(password)
-			xmlSaveFile(xml_save_log_File)
-			xmlUnloadFile(xml_save_log_File)
-		end
-	end
-end
-addEvent("resetSaveXML", true)
-addEventHandler("resetSaveXML", getRootElement(), resetSaveXML)
-
-function onClickBtnLogin(button,state)
-	if(button == "left" and state == "up") then
-		if (source == panel.login.login) then
-			startLoggingIn()
-		end
-	end
-end
-
-local loginClickTimer = nil
-function startLoggingIn()
-	if not getElementData(localPlayer, "clickedLogin") then
-		setElementData(localPlayer, "clickedLogin", true, false)
-		if isTimer(loginClickTimer) then
-			killTimer(loginClickTimer)
-		end
-		loginClickTimer = setTimer(setElementData, 1000, 1, localPlayer, "clickedLogin", nil, false)
-
-		username = guiGetText(panel.login.username)
-		password = guiGetText(panel.login.password)
-			if guiCheckBoxGetSelected ( panel.login.remember ) == true then
-				checksave = true
-			else
-				checksave = false
-			end
-		playSoundFrontEnd ( 6 )
-		guiSetEnabled(panel.login.login, false)
-		guiSetAlpha(panel.login.login, 0.3)
-		triggerServerEvent("accounts:login:attempt", getLocalPlayer(), username, password, checksave)
-		authen_msg("Login", "Sending request to server..")
-	else
-		Error_msg("Login", "Slow down..")
-	end
-end
-
-function hideLoginPanel(keepBG)
-	showCursor(true)
-	if keepBG then
-		-- إخفاء كل العناصر ما عدا الخلفية
-		for name, gui in pairs( panel.login ) do
-			if name ~= 'logo' then
-				guiSetVisible( gui, false)
-			end
-		end
-		-- الخلفية تفضل ظاهرة
-		showBackground()
-	else
-		-- إخفاء كل العناصر بما فيها الخلفية
-		for name, gui in pairs( panel.login ) do
-			if gui and isElement( gui ) then
-				destroyElement( gui )
-				gui = nil
-			end
-		end
-		-- إخفاء الخلفية
-		hideBackground()
-		triggerEvent( 'hud:blur', resourceRoot, 'off', true )
-		removeEventHandler( 'onClientRender', root, slideScreen )
-	end
-end
-addEvent("hideLoginPanel", true)
-addEventHandler("hideLoginPanel", getRootElement(), hideLoginPanel)
-
-
-function OnBtnRegister ()
-	switchToRegisterPanel()
-	playSoundFrontEnd ( 2 )
-end
-
-function onClickCancel()
-	switchToLoginPanel()
-	playSoundFrontEnd ( 2 )
-	
-end
-
-function switchToLoginPanel()
-	guiSetText(panel.login.error, "")
-	guiSetText(panel.login.authen, "")
-	guiSetText(panel.login.toplabel, "")
-
-	guiSetSize(panel.login.main, 350,350, false)
-	guiStaticImageLoadImage(panel.login.main, "login-panel/Login_window.png" )
-	guiSetVisible(panel.login.register2, false)
-	guiSetVisible(panel.login.cancel,false)
-	guiSetVisible(panel.login.toplabel,false)
-	guiSetVisible(panel.login.repassword,false)
-	guiSetVisible(panel.login.email,false)
-	guiSetVisible(panel.login.password2,false)
-	guiSetVisible(panel.login.username2,false)
-	guiSetVisible(panel.login.register, true)
-	guiSetVisible(panel.login.login, true)
-	guiSetVisible(panel.login.password, true)
-	guiSetVisible(panel.login.username, true)
-	guiSetVisible(panel.login.remember, true)
-	
-	-- إخفاء خطوط حقول التسجيل وإظهار خطوط حقول الدخول
-	guiSetVisible(panel.login.username2Line,false)
-	guiSetVisible(panel.login.password2Line,false)
-	guiSetVisible(panel.login.repasswordLine,false)
-	guiSetVisible(panel.login.emailLine,false)
-	guiSetVisible(panel.login.usernameLine,true)
-	guiSetVisible(panel.login.passwordLine,true)
-	
-	showCursor(true)
-	guiSetVisible(panel.login.userIcon, true)
-    guiSetVisible(panel.login.passIcon, true)
-    guiSetVisible(panel.login.emailIcon, false)
-    guiSetVisible(panel.login.userIcon2, false)
-    guiSetVisible(panel.login.passIcon2, false)
-    guiSetVisible(panel.login.repassIcon, false)
-end
-
-function switchToRegisterPanel()
-	guiSetText(panel.login.error, "")
-	guiSetText(panel.login.authen, "")
-	guiSetText(panel.login.toplabel, "")
-
-	guiSetSize(panel.login.main, 350,421, false)
-	guiStaticImageLoadImage(panel.login.main, "login-panel/register_window.png" )
-	guiSetVisible(panel.login.register2, true)
-	guiSetVisible(panel.login.cancel,true)
-	guiSetVisible(panel.login.toplabel,true)
-	guiSetVisible(panel.login.repassword,true)
-	guiSetVisible(panel.login.password2,true)
-	guiSetVisible(panel.login.username2,true)
-	guiSetVisible(panel.login.email,true)
-	guiSetVisible(panel.login.register, false)
-	guiSetVisible(panel.login.login, false)
-	guiSetVisible(panel.login.password, false)
-	guiSetVisible(panel.login.username, false)
-	guiSetVisible(panel.login.remember, false)
-	
-	-- إخفاء خطوط حقول الدخول وإظهار خطوط حقول التسجيل
-	guiSetVisible(panel.login.usernameLine,false)
-	guiSetVisible(panel.login.passwordLine,false)
-	guiSetVisible(panel.login.username2Line,true)
-	guiSetVisible(panel.login.password2Line,true)
-	guiSetVisible(panel.login.repasswordLine,true)
-	guiSetVisible(panel.login.emailLine,true)
-	
-	showCursor(true)
-	setElementData(localPlayer, "switched", true, false)
-	 -- إظهار وإخفاء الأيقونات
-    guiSetVisible(panel.login.userIcon, false)
-    guiSetVisible(panel.login.passIcon, false)
-    guiSetVisible(panel.login.emailIcon, true)
-    guiSetVisible(panel.login.userIcon2, true)
-    guiSetVisible(panel.login.passIcon2, true)
-    guiSetVisible(panel.login.repassIcon, true)
-end
-
-function onClickBtnRegister(button,state)
-	username = guiGetText(panel.login.username2)
-	password = guiGetText(panel.login.password2)
-	passwordConfirm = guiGetText(panel.login.repassword)
-	email = guiGetText(panel.login.email)
-	registerValidation(username, password, passwordConfirm,email)
-
-	guiSetEnabled(panel.login.register, false)
-	guiSetAlpha(panel.login.register, 0.3)
-end
-
-function registerValidation(username, password, passwordConfirm, email)
-	if not username or username == "" or not password or password == "" or not passwordConfirm or passwordConfirm == "" or not email or email == ""  then
-		guiSetText(panel.login.toplabel, "Please fill out all fields.")
-		guiLabelSetColor ( panel.login.toplabel, 255, 0, 0 )
-		playSoundFrontEnd ( 4 )
-	elseif string.len(username) < 3 then
-		guiSetText(panel.login.toplabel, "Username must be 3 characters or longer.")
-		guiLabelSetColor ( panel.login.toplabel, 255, 0, 0 )
-		playSoundFrontEnd ( 4 )
-	elseif string.len(username) >= 19 then
-		guiSetText(panel.login.toplabel, "Username must be less then 20 characters long.")
-		guiLabelSetColor ( panel.login.toplabel, 255, 0, 0 )
-		playSoundFrontEnd ( 4 )
-	elseif string.find(username, ' ') then
-		guiSetText(panel.login.toplabel, "Invalid Username.")
-		guiLabelSetColor ( panel.login.toplabel, 255, 0, 0 )
-		playSoundFrontEnd ( 4 )
-	elseif string.find(password, "'") or string.find(password, '"') then
-		guiSetText(panel.login.toplabel, "Password must not contain ' or "..'"')
-		guiLabelSetColor ( panel.login.toplabel, 255, 0, 0 )
-		playSoundFrontEnd ( 4 )
-	elseif string.len(password) < 8 then
-		guiSetText(panel.login.toplabel, "Password must be 8 characters or longer.")
-		guiLabelSetColor ( panel.login.toplabel, 255, 0, 0 )
-		playSoundFrontEnd ( 4 )
-	elseif string.len(password) > 25 then
-		guiSetText(panel.login.toplabel, "Password must be less than 25 characters long.")
-		guiLabelSetColor ( panel.login.toplabel, 255, 0, 0 )
-		playSoundFrontEnd ( 4 )
-	elseif password ~= passwordConfirm then
-		guiSetText(panel.login.toplabel, "Passwords mismatched!")
-		guiLabelSetColor ( panel.login.toplabel, 255, 0, 0 )
-		playSoundFrontEnd ( 4 )
-	elseif string.match(username,"%W") then
-		guiSetText(panel.login.toplabel, "\"!@#$\"%'^&*()\" are not allowed in username.")
-		guiLabelSetColor ( panel.login.toplabel, 255, 0, 0 )
-		playSoundFrontEnd ( 4 )
-	else
-		local validEmail, reason = exports.global:isEmail(email)
-		if not validEmail then
-			guiSetText(panel.login.toplabel, reason)
-			guiLabelSetColor ( panel.login.toplabel, 255, 0, 0 )
-			playSoundFrontEnd ( 4 )
-		else
-			triggerServerEvent("accounts:register:attempt",getLocalPlayer(),username,password,passwordConfirm, email)
-			authen_msg("Register", "Sending request to server.")
-		end
-	end
-end
-
-function registerComplete(username, pw, email)
-	guiSetText(panel.login.username, username)
-	guiSetText(panel.login.password, pw)
-	playSoundFrontEnd(13)
-	displayRegisterConpleteText(username, email)
-end
-addEvent("accounts:register:complete",true)
-addEventHandler("accounts:register:complete",getRootElement(),registerComplete)
-
-function displayRegisterConpleteText(username)
-    local GUIEditor = {
-        button = {},
-        window = {},
-        label = {}
+-- client.lua
+local screenWidth, screenHeight = guiGetScreenSize()
+local font = dxCreateFont("Tajawal-Black.ttf", 10) or "default"
+local titleFont = dxCreateFont("Tajawal-Bold.ttf", 11) or "title-bold"
+
+-- تحميل الصور بشكل صحيح
+local backgroundImage = dxCreateTexture("login-panel/background.png")
+local logoImage = dxCreateTexture("login-panel/logopr.png")
+local userIcon = dxCreateTexture("login-panel/user.png")
+local passIcon = dxCreateTexture("login-panel/pass.png")
+local passVisibleIcon = dxCreateTexture("login-panel/pass1.png")
+local emailIcon = dxCreateTexture("login-panel/email.png")
+
+-- تحميل خلفيات البانلات
+local loginBgImage = dxCreateTexture("login-panel/bkg1.png")
+local registerBgImage = dxCreateTexture("login-panel/bkg2.png")
+local buttonImage = dxCreateTexture("login-panel/button.png")
+
+-- 🎵 إصلاح مشكلة الصوت
+function playClickSound()
+    local soundPaths = {
+        ":account/login-panel/click.mp3",
+        "login-panel/click.mp3", 
+        ":account/click.mp3",
+        "click.mp3"
     }
-
-    GUIEditor.window[1] = guiCreateWindow(667, 381, 357, 150, "Congratulations! Account has been successfully created!", false)
-    exports.global:centerWindow(GUIEditor.window[1])
-    guiSetAlpha(GUIEditor.window[1], 1)
-    guiWindowSetMovable(GUIEditor.window[1], false)
-    guiWindowSetSizable(GUIEditor.window[1], false)
-    guiSetProperty(GUIEditor.window[1], "AlwaysOnTop", "True")
     
-    GUIEditor.label[1] = guiCreateLabel(8, 30, 339, 80, "Your account '"..username.."' has been successfully created!\n\nYou will be automatically logged in shortly.\n\nWelcome to our community!", false, GUIEditor.window[1])
-    guiLabelSetHorizontalAlign(GUIEditor.label[1], "center", true)
-    guiLabelSetColor(GUIEditor.label[1], 0, 255, 0)
+    for _, path in ipairs(soundPaths) do
+        local sound = playSound(path)
+        if sound then
+            setSoundVolume(sound, 0.7)
+            return true
+        end
+    end
+    
+    outputDebugString("لم يتم العثور على ملف الصوت click.mp3")
+    return false
+end
 
-    GUIEditor.button[1] = guiCreateButton(10, 110, 337, 30, "OK", false, GUIEditor.window[1])
-    addEventHandler("onClientGUIClick", GUIEditor.button[1], function()
-        if source == GUIEditor.button[1] then
-            if isElement(GUIEditor.window[1]) then
-                destroyElement(GUIEditor.window[1])
-                GUIEditor = nil
-                switchToLoginPanel()
+
+-- بانل تسجيل الدخول
+local loginPanel = {
+    width = 300,
+    height = 320,
+    x = (screenWidth - 300) / 2,
+    y = (screenHeight - 320) / 2,
+    visible = true
+}
+
+-- بانل إنشاء الحساب
+local registerPanel = {
+    width = 320,
+    height = 380,
+    x = (screenWidth - 320) / 2,
+    y = (screenHeight - 380) / 2,
+    visible = false
+}
+
+local logo = {
+    width = 40,  
+    height = 40, 
+    x = loginPanel.x + 10,
+    y = loginPanel.y + 5,
+    registerX = registerPanel.x + 10,
+    registerY = registerPanel.y + 5
+}
+
+-- إضافة خيار "تذكرني"
+local rememberMe = false
+
+-- متغيرات لإظهار/إخفاء كلمة المرور
+local passwordVisible = {
+    login = false,
+    register = {false, false}
+}
+
+local inputFields = {
+    login = {
+        {text = "", placeholder = "اسم المستخدم", type = "text", active = false},
+        {text = "", placeholder = "كلمة المرور", type = "password", active = false}
+    },
+    register = {
+        {text = "", placeholder = "اسم المستخدم", type = "text", active = false},
+        {text = "", placeholder = "البريد الإلكتروني", type = "email", active = false},
+        {text = "", placeholder = "كلمة المرور", type = "password", active = false},
+        {text = "", placeholder = "تأكيد كلمة المرور", type = "password", active = false}
+    }
+}
+
+-- 🎨 ألوان
+local colors = {
+    primary = tocolor(220, 20, 60),
+    secondary = tocolor(180, 0, 40),
+    white = tocolor(255, 255, 255),
+    lightText = tocolor(220, 220, 220),
+    panel = tocolor(0, 0, 0, 250),
+    fieldBg = tocolor(33, 33, 33, 80),
+    fieldLine = tocolor(255, 255, 255, 200),
+    toastBg = tocolor(0, 0, 0, 100),
+    checkbox = tocolor(33, 33, 33, 80),
+    checkboxTick = tocolor(255, 255, 255)
+}
+
+-- نظام التوست
+local toastMessages = {}
+local TOAST_DURATION = 3000
+local lastToastTime = 0
+local TOAST_COOLDOWN = 5000
+
+-- مؤشر الكتابة
+local cursorBlink = true
+local cursorTimer = nil
+local lastBlinkTime = 0
+
+-- تأثير التكبير للروابط
+local linkScale = {
+    switchToRegister = 1.0,
+    forgot = 1.0,
+    switchToLogin = 1.0,
+    remember = 1.0
+}
+
+-- 🆕 متغيرات لتخزين إحداثيات العناصر الحالية
+local currentElements = {
+    login = {},
+    register = {}
+}
+
+function startCursorBlink()
+    if cursorTimer then
+        killTimer(cursorTimer)
+    end
+    cursorBlink = true
+    lastBlinkTime = getTickCount()
+    cursorTimer = setTimer(function()
+        cursorBlink = not cursorBlink
+    end, 500, 0)
+end
+
+function stopCursorBlink()
+    if cursorTimer then
+        killTimer(cursorTimer)
+        cursorTimer = nil
+    end
+    cursorBlink = false
+end
+
+function showToastMessage(message, r, g, b)
+    local currentTime = getTickCount()
+    if currentTime - lastToastTime < TOAST_COOLDOWN then
+        return
+    end
+    
+    lastToastTime = currentTime
+    table.insert(toastMessages, {
+        text = message,
+        color = tocolor(r or 255, g or 255, b or 255),
+        startTime = currentTime,
+        y = -50
+    })
+end
+
+function drawToastMessages()
+    local currentTime = getTickCount()
+    local toastHeight = 30
+    local toastWidth = 250
+    local toastX = (screenWidth - toastWidth) / 2
+    
+    for i = #toastMessages, 1, -1 do
+        local toast = toastMessages[i]
+        local elapsed = currentTime - toast.startTime
+        
+        if elapsed < TOAST_DURATION then
+            local progress = elapsed / TOAST_DURATION
+            local targetY = 50
+            local startY = -50
+            
+            if progress < 0.2 then
+                local enterProgress = progress / 0.2
+                toast.y = startY + (targetY - startY) * enterProgress
+            elseif progress > 0.8 then
+                local exitProgress = (progress - 0.8) / 0.2
+                toast.y = targetY - 50 * exitProgress
+            else
+                toast.y = targetY
+            end
+            
+            dxDrawRectangle(toastX, toast.y, toastWidth, toastHeight, colors.toastBg)
+            dxDrawText(toast.text, toastX, toast.y, toastX + toastWidth, toast.y + toastHeight, colors.white, 0.8, font, "center", "center", false, false, true)
+        else
+            table.remove(toastMessages, i)
+        end
+    end
+end
+
+-- متغيرات التحكم في الكتابة
+local backspaceTimer = nil
+local capsLockEnabled = false
+
+-- متغيرات تأثير الأزرار
+local buttonHover = {
+    login = false,
+    register = false,
+    forgot = false,
+    remember = false,
+    switchToRegister = false,
+    switchToLogin = false
+}
+
+local loginPanelVisible = true
+
+function toggleLoginPanel(state)
+    if state ~= nil then
+        loginPanelVisible = state
+    else
+        loginPanelVisible = not loginPanelVisible
+    end
+    
+    if loginPanelVisible then
+        resetInputFields()
+        addEventHandler("onClientRender", root, drawLoginPanel)
+        addEventHandler("onClientClick", root, handleClick)
+        addEventHandler("onClientDoubleClick", root, handleDoubleClick)
+        showCursor(true)
+        toggleControl("all", false)
+    else
+        removeEventHandler("onClientRender", root, drawLoginPanel)
+        removeEventHandler("onClientClick", root, handleClick)
+        removeEventHandler("onClientDoubleClick", root, handleDoubleClick)
+        stopCursorBlink()
+        showCursor(false)
+        toggleControl("all", true)
+    end
+end
+
+function resetInputFields()
+    for _, fields in pairs(inputFields) do
+        for _, field in ipairs(fields) do
+            field.text = ""
+            field.active = false
+        end
+    end
+    passwordVisible.login = false
+    passwordVisible.register = {false, false}
+    stopCursorBlink()
+end
+
+function switchToRegister()
+    loginPanel.visible = false
+    registerPanel.visible = true
+    resetInputFields()
+    playClickSound()
+end
+
+function switchToLogin()
+    registerPanel.visible = false
+    loginPanel.visible = true
+    resetInputFields()
+    playClickSound()
+end
+
+-- تحديث تأثيرات التكبير
+addEventHandler("onClientRender", root, function()
+    if loginPanel.visible then
+        if buttonHover.switchToRegister and linkScale.switchToRegister < 1.05 then
+            linkScale.switchToRegister = linkScale.switchToRegister + 0.02
+        elseif not buttonHover.switchToRegister and linkScale.switchToRegister > 1.0 then
+            linkScale.switchToRegister = linkScale.switchToRegister - 0.02
+        end
+        
+        if buttonHover.forgot and linkScale.forgot < 1.05 then
+            linkScale.forgot = linkScale.forgot + 0.02
+        elseif not buttonHover.forgot and linkScale.forgot > 1.0 then
+            linkScale.forgot = linkScale.forgot - 0.02
+        end
+        
+        if buttonHover.remember and linkScale.remember < 1.1 then
+            linkScale.remember = linkScale.remember + 0.02
+        elseif not buttonHover.remember and linkScale.remember > 1.0 then
+            linkScale.remember = linkScale.remember - 0.02
+        end
+    elseif registerPanel.visible then
+        if buttonHover.switchToLogin and linkScale.switchToLogin < 1.05 then
+            linkScale.switchToLogin = linkScale.switchToLogin + 0.02
+        elseif not buttonHover.switchToLogin and linkScale.switchToLogin > 1.0 then
+            linkScale.switchToLogin = linkScale.switchToLogin - 0.02
+        end
+    end
+end)
+
+function drawLoginPanel()
+    dxDrawRectangle(0, 0, screenWidth, screenHeight, tocolor(0, 0, 0, 200))
+    
+    if backgroundImage then
+        dxDrawImage(0, 0, screenWidth, screenHeight, backgroundImage, 0, 0, 0, tocolor(255, 255, 255, 255))
+    end
+
+    if loginPanel.visible then
+        if logoImage then
+            dxDrawImage(logo.x, logo.y, logo.width, logo.height, logoImage, 0, 0, 0, tocolor(255, 255, 255, 255))
+        end
+        drawLoginForm()
+    elseif registerPanel.visible then
+        if logoImage then
+            dxDrawImage(logo.registerX, logo.registerY, logo.width, logo.height, logoImage, 0, 0, 0, tocolor(255, 255, 255, 255))
+        end
+        drawRegisterForm()
+    end
+
+    drawToastMessages()
+end
+
+function drawLoginForm()
+    -- 🆕 إعادة تعيين العناصر
+    currentElements.login = {}
+    
+    if loginBgImage then
+        dxDrawImage(loginPanel.x, loginPanel.y, loginPanel.width, loginPanel.height, loginBgImage, 0, 0, 0, tocolor(255, 255, 255, 255))
+    else
+        dxDrawRectangle(loginPanel.x, loginPanel.y, loginPanel.width, loginPanel.height, colors.panel)
+    end
+    
+    dxDrawText("تسجيل الدخول", loginPanel.x, loginPanel.y + 10, loginPanel.x + loginPanel.width, loginPanel.y + 35, colors.white, 1.0, titleFont, "center", "center")
+    
+    local lineY = loginPanel.y + 45
+    dxDrawLine(loginPanel.x + 20, lineY, loginPanel.x + loginPanel.width - 20, lineY, tocolor(33, 33, 33, 90), 1)
+
+    if logoImage then
+        dxDrawImage(logo.x, logo.y, logo.width, logo.height, logoImage, 0, 0, 0, tocolor(255, 255, 255, 255))
+    end
+
+    local fieldWidth = 260
+    local fieldHeight = 32
+    local fieldX = loginPanel.x + (loginPanel.width - fieldWidth) / 2
+    local startY = loginPanel.y + 80
+
+    -- 🆕 حفظ إحداثيات الحقول
+    currentElements.login.fields = {}
+
+    local fields = inputFields.login
+    for i, field in ipairs(fields) do
+        -- 🆕 حفظ إحداثيات الحقل
+        currentElements.login.fields[i] = {
+            x = fieldX, 
+            y = startY,
+            width = fieldWidth,
+            height = fieldHeight
+        }
+        
+        dxDrawRectangle(fieldX, startY, fieldWidth, fieldHeight, colors.fieldBg)
+        dxDrawLine(fieldX + 20, startY + fieldHeight, fieldX + fieldWidth - 20, startY + fieldHeight, colors.fieldLine, 1.5)
+
+local displayText = ""
+local textColor = colors.white
+local textScale = 1.0  -- الحجم الافتراضي للنص الفعلي
+
+if field.text == "" and not field.active then
+    displayText = field.placeholder
+    textColor = tocolor(255, 255, 255, 50)
+    textScale = 0.7  -- 🎯 حجم صغير للوصف فقط
+else
+    if field.type == "password" and not passwordVisible.login then
+        displayText = string.rep("*", #field.text)
+    else
+        displayText = field.text
+    end
+    textScale = 1.0  -- 🎯 حجم كبير للنص الفعلي فقط
+end
+
+-- حساب العرض باستخدام المقياس الصحيح
+local textWidth = dxGetTextWidth(displayText, textScale, font)
+local cursorX = fieldX + fieldWidth - 10 - textWidth
+
+-- الرسم باستخدام المقياس الصحيح
+dxDrawText(displayText, fieldX + 30, startY, fieldX + fieldWidth - 10, startY + fieldHeight, textColor, textScale, font, "right", "center")
+
+-- المؤشر
+if field.active and cursorBlink then
+    dxDrawRectangle(cursorX, startY + 8, 2, fieldHeight - 16, colors.white)
+end
+        
+        local icon = nil
+        if i == 1 then 
+            icon = userIcon
+        elseif i == 2 then 
+            icon = passwordVisible.login and passVisibleIcon or passIcon
+        end
+        
+        if icon then
+            -- 🆕 حفظ إحداثيات الأيقونة
+            currentElements.login.passIcon = {
+                x = fieldX + 6,
+                y = startY + 5,
+                width = 16,
+                height = 16
+            }
+            dxDrawImage(fieldX + 6, startY + 5, 16, 16, icon, 0, 0, 0, tocolor(255, 255, 255, 200))
+        end
+        
+        startY = startY + fieldHeight + 12
+    end
+
+    local optionsY = startY
+    local rememberSize = 16
+    
+    local cursorX, cursorY = 0, 0
+    if isCursorShowing() then
+        cursorX, cursorY = getCursorPosition()
+        cursorX, cursorY = cursorX * screenWidth, cursorY * screenHeight
+    end
+    
+    -- خيار "تذكرني"
+    local rememberText = "تذكرني"
+    local rememberTextWidth = dxGetTextWidth(rememberText, 0.8 * linkScale.remember, font)
+    local rememberAreaWidth = rememberSize + 6 + rememberTextWidth
+    
+    -- 🆕 حفظ إحداثيات تذكرني
+    currentElements.login.remember = {
+        x = fieldX,
+        y = optionsY,
+        width = rememberAreaWidth,
+        height = rememberSize
+    }
+    
+    local isHoveringRemember = isInBox(cursorX, cursorY, fieldX, fieldX + rememberAreaWidth, optionsY, optionsY + rememberSize)
+    buttonHover.remember = isHoveringRemember
+    
+    dxDrawRectangle(fieldX, optionsY, rememberSize, rememberSize, colors.checkbox)
+    
+    if rememberMe then
+        dxDrawText("✓", fieldX, optionsY, fieldX + rememberSize, optionsY + rememberSize, colors.checkboxTick, 1.0, titleFont, "center", "center")
+    end
+    
+    dxDrawText(rememberText, fieldX + rememberSize + 6, optionsY, fieldX + fieldWidth, optionsY + rememberSize, colors.white, 0.8 * linkScale.remember, font, "left", "center")
+
+    -- رابط "نسيت كلمة المرور"
+    local forgotText = "نسيت كلمة المرور؟"
+    local forgotFontScale = 0.7 * linkScale.forgot
+    local forgotWidth = dxGetTextWidth(forgotText, forgotFontScale, font)
+    local forgotX = fieldX + fieldWidth - forgotWidth
+    
+    -- 🆕 حفظ إحداثيات نسيت كلمة المرور
+    currentElements.login.forgot = {
+        x = forgotX,
+        y = optionsY,
+        width = forgotWidth,
+        height = 16
+    }
+    
+    local isHoveringForgot = isInBox(cursorX, cursorY, forgotX, forgotX + forgotWidth, optionsY, optionsY + 16)
+    buttonHover.forgot = isHoveringForgot
+    
+    local forgotColor = colors.white
+    dxDrawText(forgotText, forgotX, optionsY, fieldX + fieldWidth, optionsY + 16, forgotColor, forgotFontScale, font, "right", "center")
+
+-- زر تسجيل الدخول
+local buttonY = optionsY + 40
+local buttonWidth = 150
+local buttonHeight = 28
+local buttonX = fieldX + (fieldWidth - buttonWidth) / 2
+
+-- 🆕 حفظ إحداثيات زر تسجيل الدخول
+currentElements.login.loginButton = {
+    x = buttonX,
+    y = buttonY,
+    width = buttonWidth,
+    height = buttonHeight
+}
+
+local isHoveringLogin = isInBox(cursorX, cursorY, buttonX, buttonX + buttonWidth, buttonY, buttonY + buttonHeight)
+buttonHover.login = isHoveringLogin
+
+-- 🎨 استخدام صورة الزر مع تأثير التعتيم عند Hover
+if buttonImage then
+    local buttonAlpha = isHoveringLogin and 180 or 255  -- 🎯 يتعتّم شوية لما الماوس يعدي
+    dxDrawImage(buttonX, buttonY, buttonWidth, buttonHeight, buttonImage, 0, 0, 0, tocolor(255, 255, 255, buttonAlpha))
+else
+    -- Fallback إذا الصورة ما اتحملتش
+    local buttonColor = isHoveringLogin and colors.secondary or colors.primary
+    dxDrawRectangle(buttonX, buttonY, buttonWidth, buttonHeight, buttonColor)
+end
+
+dxDrawText("تسجيل الدخول", buttonX, buttonY, buttonX + buttonWidth, buttonY + buttonHeight, colors.white, 1, font, "center", "center")
+
+    -- رابط "إنشاء حساب جديد"
+    local switchText = "إنشاء حساب جديد"
+    local switchFontScale = 0.8 * linkScale.switchToRegister
+    local switchWidth = dxGetTextWidth(switchText, switchFontScale, font)
+    local switchX = fieldX + (fieldWidth - switchWidth) / 2
+    local switchY = buttonY + 40
+    
+    -- 🆕 حفظ إحداثيات رابط إنشاء حساب
+    currentElements.login.switchToRegister = {
+        x = switchX,
+        y = switchY,
+        width = switchWidth,
+        height = 16
+    }
+    
+    local isHoveringSwitch = isInBox(cursorX, cursorY, switchX, switchX + switchWidth, switchY, switchY + 16)
+    buttonHover.switchToRegister = isHoveringSwitch
+    
+    local switchColor = colors.white
+    dxDrawText(switchText, fieldX, switchY, fieldX + fieldWidth, switchY + 16, switchColor, switchFontScale, font, "center", "center")
+end
+
+function drawRegisterForm()
+    -- 🆕 إعادة تعيين العناصر
+    currentElements.register = {}
+    
+    if registerBgImage then
+        dxDrawImage(registerPanel.x, registerPanel.y, registerPanel.width, registerPanel.height, registerBgImage, 0, 0, 0, tocolor(255, 255, 255, 255))
+    else
+        dxDrawRectangle(registerPanel.x, registerPanel.y, registerPanel.width, registerPanel.height, colors.panel)
+    end
+    
+    dxDrawText("إنشاء حساب جديد", registerPanel.x, registerPanel.y + 10, registerPanel.x + registerPanel.width, registerPanel.y + 35, colors.white, 1.0, titleFont, "center", "center")
+
+    local lineY = registerPanel.y + 45
+    dxDrawLine(registerPanel.x + 20, lineY, registerPanel.x + registerPanel.width - 20, lineY, tocolor(33, 33, 33, 90), 1)
+
+    if logoImage then
+        dxDrawImage(logo.registerX, logo.registerY, logo.width, logo.height, logoImage, 0, 0, 0, tocolor(255, 255, 255, 255))
+    end
+
+    local fieldWidth = 280
+    local fieldHeight = 32
+    local fieldX = registerPanel.x + (registerPanel.width - fieldWidth) / 2
+    local startY = registerPanel.y + 80
+
+    -- 🆕 حفظ إحداثيات الحقول
+    currentElements.register.fields = {}
+    currentElements.register.passIcons = {}
+
+    local fields = inputFields.register
+    for i, field in ipairs(fields) do
+        -- 🆕 حفظ إحداثيات الحقول
+        currentElements.register.fields[i] = {
+            x = fieldX,
+            y = startY,
+            width = fieldWidth,
+            height = fieldHeight
+        }
+        
+        dxDrawRectangle(fieldX, startY, fieldWidth, fieldHeight, colors.fieldBg)
+        dxDrawLine(fieldX + 20, startY + fieldHeight, fieldX + fieldWidth - 20, startY + fieldHeight, colors.fieldLine, 1.5)
+
+local displayText = ""
+local textColor = colors.white
+local textScale = 1.0  -- الحجم الافتراضي للنص الفعلي
+
+if field.text == "" and not field.active then
+    displayText = field.placeholder
+    textColor = tocolor(255, 255, 255, 50)
+    textScale = 0.7  -- 🎯 حجم صغير للوصف فقط
+else
+    if field.type == "password" then
+        if i == 3 and not passwordVisible.register[1] then
+            displayText = string.rep("*", #field.text)
+        elseif i == 4 and not passwordVisible.register[2] then
+            displayText = string.rep("*", #field.text)
+        else
+            displayText = field.text
+        end
+    else
+        displayText = field.text
+    end
+    textScale = 1.0  -- 🎯 حجم كبير للنص الفعلي فقط
+end
+
+-- حساب العرض باستخدام المقياس الصحيح
+local textWidth = dxGetTextWidth(displayText, textScale, font)
+local cursorX = fieldX + fieldWidth - 10 - textWidth
+
+-- الرسم باستخدام المقياس الصحيح
+dxDrawText(displayText, fieldX + 30, startY, fieldX + fieldWidth - 10, startY + fieldHeight, textColor, textScale, font, "right", "center")
+
+-- المؤشر
+if field.active and cursorBlink then
+    dxDrawRectangle(cursorX, startY + 8, 2, fieldHeight - 16, colors.white)
+end
+        
+        local icon = nil
+        if i == 1 then icon = userIcon
+        elseif i == 2 then icon = emailIcon
+        elseif i == 3 then 
+            icon = passwordVisible.register[1] and passVisibleIcon or passIcon
+            -- 🆕 حفظ إحداثيات أيقونة كلمة المرور الأولى
+            currentElements.register.passIcons[1] = {
+                x = fieldX + 6,
+                y = startY + 5,
+                width = 16,
+                height = 16
+            }
+        elseif i == 4 then 
+            icon = passwordVisible.register[2] and passVisibleIcon or passIcon
+            -- 🆕 حفظ إحداثيات أيقونة كلمة المرور الثانية
+            currentElements.register.passIcons[2] = {
+                x = fieldX + 6,
+                y = startY + 5,
+                width = 16,
+                height = 16
+            }
+        end
+        
+        if icon then
+            dxDrawImage(fieldX + 6, startY + 5, 16, 16, icon, 0, 0, 0, tocolor(255, 255, 255, 200))
+        end
+        
+        startY = startY + fieldHeight + 10
+    end
+
+-- زر إنشاء الحساب
+local buttonY = startY + 25
+local buttonWidth = 150
+local buttonHeight = 28
+local buttonX = fieldX + (fieldWidth - buttonWidth) / 2
+
+-- 🆕 حفظ إحداثيات زر إنشاء الحساب
+currentElements.register.registerButton = {
+    x = buttonX,
+    y = buttonY,
+    width = buttonWidth,
+    height = buttonHeight
+}
+
+local cursorX, cursorY = 0, 0
+if isCursorShowing() then
+    cursorX, cursorY = getCursorPosition()
+    cursorX, cursorY = cursorX * screenWidth, cursorY * screenHeight
+end
+
+local isHoveringRegister = isInBox(cursorX, cursorY, buttonX, buttonX + buttonWidth, buttonY, buttonY + buttonHeight)
+buttonHover.register = isHoveringRegister
+
+-- 🎨 استخدام صورة الزر مع تأثير التعتيم عند Hover
+if buttonImage then
+    local buttonAlpha = isHoveringRegister and 180 or 255  -- 🎯 يتعتّم شوية لما الماوس يعدي
+    dxDrawImage(buttonX, buttonY, buttonWidth, buttonHeight, buttonImage, 0, 0, 0, tocolor(255, 255, 255, buttonAlpha))
+else
+    -- Fallback إذا الصورة ما اتحملتش
+    local buttonColor = isHoveringRegister and colors.secondary or colors.primary
+    dxDrawRectangle(buttonX, buttonY, buttonWidth, buttonHeight, buttonColor)
+end
+
+dxDrawText("إنشاء الحساب", buttonX, buttonY, buttonX + buttonWidth, buttonY + buttonHeight, colors.white, 1, font, "center", "center")
+    -- رابط الرجوع لتسجيل الدخول
+    local backText = "العودة لتسجيل الدخول"
+    local backFontScale = 0.8 * linkScale.switchToLogin
+    local backWidth = dxGetTextWidth(backText, backFontScale, font)
+    local backX = fieldX + (fieldWidth - backWidth) / 2
+    local backY = buttonY + 40
+    
+    -- 🆕 حفظ إحداثيات رابط العودة
+    currentElements.register.switchToLogin = {
+        x = backX,
+        y = backY,
+        width = backWidth,
+        height = 16
+    }
+    
+    local isHoveringBack = isInBox(cursorX, cursorY, backX, backX + backWidth, backY, backY + 16)
+    buttonHover.switchToLogin = isHoveringBack
+    
+    local backColor = colors.white
+    dxDrawText(backText, fieldX, backY, fieldX + fieldWidth, backY + 16, backColor, backFontScale, font, "center", "center")
+end
+
+-- 🔧 دالة التحقق من وجود الماوس في منطقة
+function isInBox(x, y, xmin, xmax, ymin, ymax)
+    return x and y and x >= xmin and x <= xmax and y >= ymin and y <= ymax
+end
+
+-- 🔘 معالجة النقر - 🆕 محدث باستخدام العناصر المحفوظة
+function handleClick(button, state, x, y)
+    if button ~= "left" or state ~= "up" then return end
+
+    if loginPanel.visible then
+        -- استخدام العناصر المحفوظة بدلاً من الحساب المباشر
+        local elements = currentElements.login
+        
+        -- رابط "إنشاء حساب جديد"
+        if elements.switchToRegister and isInBox(x, y, elements.switchToRegister.x, elements.switchToRegister.x + elements.switchToRegister.width, elements.switchToRegister.y, elements.switchToRegister.y + elements.switchToRegister.height) then
+            playClickSound()
+            switchToRegister()
+            return
+        end
+        
+        -- رابط "نسيت كلمة المرور"
+        if elements.forgot and isInBox(x, y, elements.forgot.x, elements.forgot.x + elements.forgot.width, elements.forgot.y, elements.forgot.y + elements.forgot.height) then
+            playClickSound()
+            showToastMessage("🛠️ جاري تطوير هذه الميزة", 255, 200, 0)
+            return
+        end
+        
+        -- خيار "تذكرني"
+        if elements.remember and isInBox(x, y, elements.remember.x, elements.remember.x + elements.remember.width, elements.remember.y, elements.remember.y + elements.remember.height) then
+            playClickSound()
+            rememberMe = not rememberMe
+            return
+        end
+        
+        -- النقر على أيقونة كلمة المرور
+        if elements.passIcon and isInBox(x, y, elements.passIcon.x, elements.passIcon.x + elements.passIcon.width, elements.passIcon.y, elements.passIcon.y + elements.passIcon.height) then
+            playClickSound()
+            passwordVisible.login = not passwordVisible.login
+            return
+        end
+        
+        -- زر تسجيل الدخول
+        if elements.loginButton and isInBox(x, y, elements.loginButton.x, elements.loginButton.x + elements.loginButton.width, elements.loginButton.y, elements.loginButton.y + elements.loginButton.height) then
+            playClickSound()
+            submitForm()
+            return
+        end
+        
+        -- التحقق من الحقول
+        if elements.fields then
+            for i, field in ipairs(elements.fields) do
+                if isInBox(x, y, field.x, field.x + field.width, field.y, field.y + field.height) then
+                    playClickSound()
+                    for j, f in ipairs(inputFields.login) do
+                        f.active = (i == j)
+                        if i == j then
+                            startCursorBlink()
+                        end
+                    end
+                    return
+                end
+            end
+        end
+        
+    elseif registerPanel.visible then
+        local elements = currentElements.register
+        
+        -- رابط الرجوع لتسجيل الدخول
+        if elements.switchToLogin and isInBox(x, y, elements.switchToLogin.x, elements.switchToLogin.x + elements.switchToLogin.width, elements.switchToLogin.y, elements.switchToLogin.y + elements.switchToLogin.height) then
+            playClickSound()
+            switchToLogin()
+            return
+        end
+        
+        -- النقر على أيقونات كلمة المرور
+        if elements.passIcons then
+            if elements.passIcons[1] and isInBox(x, y, elements.passIcons[1].x, elements.passIcons[1].x + elements.passIcons[1].width, elements.passIcons[1].y, elements.passIcons[1].y + elements.passIcons[1].height) then
+                playClickSound()
+                passwordVisible.register[1] = not passwordVisible.register[1]
+                return
+            end
+            
+            if elements.passIcons[2] and isInBox(x, y, elements.passIcons[2].x, elements.passIcons[2].x + elements.passIcons[2].width, elements.passIcons[2].y, elements.passIcons[2].y + elements.passIcons[2].height) then
+                playClickSound()
+                passwordVisible.register[2] = not passwordVisible.register[2]
+                return
+            end
+        end
+        
+        -- زر إنشاء الحساب
+        if elements.registerButton and isInBox(x, y, elements.registerButton.x, elements.registerButton.x + elements.registerButton.width, elements.registerButton.y, elements.registerButton.y + elements.registerButton.height) then
+            playClickSound()
+            submitForm()
+            return
+        end
+        
+        -- التحقق من الحقول
+        if elements.fields then
+            for i, field in ipairs(elements.fields) do
+                if isInBox(x, y, field.x, field.x + field.width, field.y, field.y + field.height) then
+                    playClickSound()
+                    for j, f in ipairs(inputFields.register) do
+                        f.active = (i == j)
+                        if i == j then
+                            startCursorBlink()
+                        end
+                    end
+                    return
+                end
+            end
+        end
+    end
+    
+    -- إذا لم يتم النقر على أي عنصر، قم بإلغاء تفعيل الحقول
+    stopCursorBlink()
+    if loginPanel.visible then
+        for _, field in ipairs(inputFields.login) do
+            field.active = false
+        end
+    elseif registerPanel.visible then
+        for _, field in ipairs(inputFields.register) do
+            field.active = false
+        end
+    end
+end
+
+function handleDoubleClick(button, state, x, y)
+    if button ~= "left" or state ~= "down" then return end
+    
+    local currentFields = loginPanel.visible and inputFields.login or inputFields.register
+    for _, field in ipairs(currentFields) do
+        if field.active then
+            field.text = ""
+            return
+        end
+    end
+end
+
+-- لوحة المفاتيح - 🛠️ محدث لدعم الرموز الخاصة
+function handleKey(key, state)
+    if not (loginPanel.visible or registerPanel.visible) then return end
+    
+    local currentFields = loginPanel.visible and inputFields.login or inputFields.register
+    local activeIndex = nil
+
+    for i, f in ipairs(currentFields) do
+        if f.active then
+            activeIndex = i
+            break
+        end
+    end
+
+    if state and activeIndex then
+        local field = currentFields[activeIndex]
+
+        local char = nil
+
+        if #key == 1 then
+            -- 🛠️ إصلاح الرموز الخاصة
+            if getKeyState("lshift") or getKeyState("rshift") then
+                -- الرموز مع Shift
+                local shiftChars = {
+                    ["1"] = "!", ["2"] = "@", ["3"] = "#", ["4"] = "$", ["5"] = "%",
+                    ["6"] = "^", ["7"] = "&", ["8"] = "*", ["9"] = "(", ["0"] = ")",
+                    ["-"] = "_", ["="] = "+", ["["] = "{", ["]"] = "}", ["\\"] = "|",
+                    [";"] = ":", ["'"] = "\"", [","] = "<", ["."] = ">", ["/"] = "?",
+                    ["`"] = "~"
+                }
+                char = shiftChars[key] or key:upper()
+            elseif capsLockEnabled then
+                -- حالة CapsLock
+                char = key:upper()
+            else
+                -- الرموز العادية
+                char = key:lower()
             end
         else
-            cancelEvent()
+            -- 🛠️ الرموز الرقمية من لوحة الأرقام
+            local numKey = key:match("num_(%d)")
+            if numKey then 
+                char = numKey 
+            elseif key == "num_div" then
+                char = "/"
+            elseif key == "num_mult" then
+                char = "*"
+            elseif key == "num_sub" then
+                char = "-"
+            elseif key == "num_add" then
+                char = "+"
+            elseif key == "num_dec" then
+                char = "."
+            end
+            
+            if key == "capslock" then
+                capsLockEnabled = not capsLockEnabled
+                return
+            end
         end
-    end, false)
+
+        if char then
+            field.text = field.text .. char
+            if not cursorTimer then
+                startCursorBlink()
+            end
+            return
+        end
+    end
+
+    if key == "backspace" then
+        if state then
+            if activeIndex then
+                local field = currentFields[activeIndex]
+                field.text = field.text:sub(1, -2)
+                if not cursorTimer then
+                    startCursorBlink()
+                end
+                backspaceTimer = setTimer(function()
+                    if field.text ~= "" then
+                        field.text = field.text:sub(1, -2)
+                    end
+                end, 100, 0)
+            end
+        else
+            if isTimer(backspaceTimer) then
+                killTimer(backspaceTimer)
+            end
+        end
+        return
+    end
+
+    if (key == "enter" or key == "num_enter") and state then
+     submitForm()
+     return
+    end
+
+    if key == "tab" and state then
+        if #currentFields > 0 then
+            if activeIndex then
+                currentFields[activeIndex].active = false
+                local nextIndex = activeIndex + 1
+                if nextIndex > #currentFields then nextIndex = 1 end
+                currentFields[nextIndex].active = true
+                startCursorBlink()
+            else
+                currentFields[1].active = true
+                startCursorBlink()
+            end
+        end
+        cancelEvent()
+        return
+    end
+
+    if key == "escape" and state then
+        showToastMessage("يجب تسجيل الدخول للعب!", 255, 100, 100)
+        cancelEvent()
+    end
+end
+addEventHandler("onClientKey", root, handleKey)
+
+-- إرسال البيانات
+function submitForm()
+    if loginPanel.visible then
+        local username = inputFields.login[1].text
+        local password = inputFields.login[2].text
+        local bannedWords = {"a7a", "kos", "kosom", "fuck", "shit", "wtf", "bitch"}
+        local lowerName = string.lower(username)
+        for _, word in ipairs(bannedWords) do
+            if string.find(lowerName, word) then
+                   showToastMessage("❌ اسم المستخدم يحتوي على كلمات غير لائقة", 255, 80, 80)
+                return
+            end
+        end
+
+        if username == "" or password == "" then
+            showToastMessage("⚠️ يرجى ملء جميع الحقول", 255, 100, 100)
+            return
+        end
+        
+        triggerServerEvent("accounts:login:attempt", localPlayer, username, password, rememberMe)
+        
+    elseif registerPanel.visible then
+        local fullname = inputFields.register[1].text
+        local email = inputFields.register[2].text
+        local password = inputFields.register[3].text
+        local confirm = inputFields.register[4].text
+
+        if fullname == "" or email == "" or password == "" or confirm == "" then
+            showToastMessage("⚠️ يرجى ملء جميع الحقول", 255, 100, 100)
+            return
+        end
+        if password ~= confirm then
+            showToastMessage("❌ كلمات المرور غير متطابقة", 255, 80, 80)
+            return
+        end
+
+        triggerServerEvent("accounts:register:attempt", localPlayer, fullname, password, confirm, email)
+    end
 end
 
-function Error_msg(Tab, Text)
-showCursor(true)
-	if Tab == "Login" then
-		playSoundFrontEnd ( 4)
-		guiSetVisible(panel.login.register, true)
-		guiSetVisible(panel.login.login, true)
-		guiSetVisible(panel.login.password, true)
-		guiSetVisible(panel.login.username, true)
-		guiSetVisible(panel.login.remember, true)
-		guiSetVisible(panel.login.main, true)
-
-		guiSetText(panel.login.authen, "")
-		guiSetText(panel.login.error, tostring(Text))
-	else
-		playSoundFrontEnd ( 4)
-		guiSetText(panel.login.toplabel, tostring(Text))
-		guiLabelSetColor ( panel.login.toplabel, 255, 0, 0 )
-	end
-end
-addEvent("set_warning_text",true)
-addEventHandler("set_warning_text",getRootElement(),Error_msg)
-
-function authen_msg(Tab, Text)
-showCursor(true)
-	if Tab == "Login" then
-		if panel.login.authen and isElement(panel.login.authen) and guiGetVisible(panel.login.authen) then
-			guiSetVisible(panel.login.register, true)
-			guiSetVisible(panel.login.login, true)
-			guiSetVisible(panel.login.password, true)
-			guiSetVisible(panel.login.username, true)
-			guiSetVisible(panel.login.remember, true)
-			guiSetVisible(panel.login.main, true)
-
-			guiSetText(panel.login.error, "")
-			guiSetText(panel.login.authen, tostring(Text))
-		end
-	else
-		guiSetText(panel.login.toplabel, tostring(Text))
-		guiLabelSetColor ( panel.login.toplabel, 255, 255, 255 )
-	end
-end
-addEvent("set_authen_text",true)
-addEventHandler("set_authen_text",getRootElement(),authen_msg)
-
-function hideLoginWindow()
-	showCursor(false)
-	hideLoginPanel()
-end
-addEvent("hideLoginWindow", true)
-addEventHandler("hideLoginWindow", getRootElement(), hideLoginWindow)
-
-function CursorError ()
-showCursor(false)
-end
-addCommandHandler("showc", CursorError)
-
-function resetRegButtons ()
-	guiSetEnabled(panel.login.register2, true)
-	guiSetAlpha(panel.login.register2, 1)
-end
-
-function resetLogButtons()
-	guiSetEnabled(panel.login.login, true)
-	guiSetAlpha(panel.login.login, 1)
-end
-
--- كل الدوال الأخرى...
-
-local screenStandByCurrent = 0
-local screenStandByComplete = 2
-local screenStandByShowing = false
-function screenStandBy(action, value)
-	if action == "add" then
-		screenStandByCurrent = screenStandByCurrent + 1
-		if screenStandByShowing then
-			authen_msg("Login", "Loading prerequisite resources.."..screenStandBy("getPercentage").."%")
-		end
-		return screenStandByCurrent
-	elseif action == "getCurrent" then
-		return screenStandByCurrent
-	elseif action == "getState" then
-		return screenStandByShowing
-	elseif action == "setState" then
-		screenStandByShowing = value
-		if screenStandByShowing then
-			authen_msg("Login", "Loading prerequisite resources.."..screenStandBy("getPercentage").."%")
-		end
-		screenStandByCurrent = 0
-		return true
-	elseif action == "getPercentage" then
-		local percentage = math.floor(screenStandByCurrent/screenStandByComplete*100)
-		if screenStandByShowing then
-			authen_msg("Login", "Loading prerequisite resources.."..percentage.."%")
-		end
-		return percentage
-	end
-end
-addEvent("screenStandBy",true)
-addEventHandler("screenStandBy",root,screenStandBy)
-
-addEventHandler ( "onClientElementDataChange", localPlayer,
-function ( dataName )
-	if getElementType ( localPlayer ) == "player" and dataName == "loggedin" then
-		showChat(getElementData(localPlayer, "loggedin") == 1)
-	end
-end )
-
--- هنا تحط الكود الجديد - في الآخر قبل نهاية الملف
+-- 🟢 إظهار تلقائي عند البداية
 addEventHandler("onClientResourceStart", resourceRoot, function()
-	createBackground()
-	
-	if fileExists("/login-panel/rememberme.xml") then
-		if not fileExists("@rememberme.xml") then
-			fileCopy("/login-panel/rememberme.xml", "@rememberme.xml")
-		end
-		fileDelete("/login-panel/rememberme.xml")
-	end
+    setTimer(function()
+        toggleLoginPanel(true)
+        showToastMessage("مرحباً! يرجى تسجيل الدخول للعب.", 220, 20, 60)
+    end, 2000, 1)
+end)
+
+addCommandHandler("login", function()
+    if not (loginPanel.visible or registerPanel.visible) then 
+        toggleLoginPanel(true)
+        switchToLogin()
+    end
+end)
+
+-- 🔔 استقبال نتيجة تسجيل الدخول أو التسجيل من السيرفر
+addEvent("accounts:login:result", true)
+addEventHandler("accounts:login:result", root, function(success, message)
+    if success then
+        showToastMessage(message or "✅ تم تسجيل الدخول بنجاح!", 100, 255, 100)
+        setTimer(function()
+            triggerEvent("hideLoginPanel", localPlayer)
+        end, 1500, 1)
+    else
+        showToastMessage(message or "❌ فشل تسجيل الدخول!", 255, 80, 80)
+    end
+end)
+
+addEvent("accounts:register:result", true)
+addEventHandler("accounts:register:result", root, function(success, message)
+    if success then
+        showToastMessage(message or "✅ تم إنشاء الحساب بنجاح! جاري تسجيل الدخول...", 100, 255, 100)
+        setTimer(switchToLogin, 2000, 1)
+    else
+        showToastMessage(message or "❌ فشل إنشاء الحساب!", 255, 80, 80)
+    end
+end)
+
+addEvent("hideLoginPanel", true)
+addEventHandler("hideLoginPanel", root, function()
+    toggleLoginPanel(false)
+    showCursor(false)
+    stopCursorBlink()
+end)
+
+-- 📦 لما يتم تسجيل الدخول بنجاح
+addEvent("accounts:login:success", true)
+addEventHandler("accounts:login:success", root, function()
+    toggleLoginPanel(false)
+    showCursor(false)
+    stopCursorBlink()
+
+    if getResourceFromName("character-system") and getResourceState(getResourceFromName("character-system")) == "running" then
+        triggerEvent("onCharacterCreationStart", localPlayer)
+    end
 end)

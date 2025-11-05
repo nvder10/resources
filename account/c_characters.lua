@@ -1,5 +1,10 @@
 --[[
-* تم إزالة حقوق النشر كما طلبت
+* ***********************************************************************************************************************
+* Copyright (c) 2015 OwlGaming Community - All Rights Reserved
+* All rights reserved. This program and the accompanying materials are private property belongs to OwlGaming Community
+* Unauthorized copying of this file, via any medium is strictly prohibited
+* Proprietary and confidential
+* ***********************************************************************************************************************
 ]]
 
 local pedTable = { }
@@ -105,7 +110,7 @@ function Characters_showSelection()
 				end
 				table.insert(pedTable, thePed)
 			else
-				outputChatBox("[ACCOUNT] Error occurred while spawning character '"..v[2].."'. Please report on Paradise Discord :" )
+				outputChatBox("[ACCOUNT] Error occurred while spawning character '"..v[2].."'. Please report on http://bugs.owlgaming.net :" )
 				for index, value in pairs( v ) do
 					outputChatBox( index .. " : " .. value )
 				end
@@ -126,10 +131,21 @@ function Characters_showSelection()
 			addEventHandler("onClientRender", getRootElement(), renderNametags)
 			addEventHandler("onClientRender", root, characterMouseOver)
 
+			--[[local bgMusic = getElementData(localPlayer, "bgMusic")
+			if not bgMusic or not isElement(bgMusic) then
+				local bgMusic = playSound ("http://files.owlgaming.net/menu.mp3", true)
+				setSoundVolume(bgMusic, 1)
+				setElementData(localPlayer, "bgMusic", bgMusic, false)
+			end]]
+
 			for i = 1, #pedTable do
 				setElementFrozen(pedTable[i], false)
 			end
-
+			--[[
+			local selectionSound = playSound ( "selection_screen.mp3")
+			setSoundVolume(selectionSound, 0.3)
+			setElementData(localPlayer, "selectionSound", selectionSound, false)
+			--]]
 		end, 2000, 1)
 	end
 
@@ -141,7 +157,7 @@ function Characters_showSelection()
 		avatar = exports.cache:getImage(id)
 	end
 	if fid then
-	
+		--exports.cache:getImage('http://owlgaming.net/favatar.php?id='..fid)
 	end
 end
 
@@ -242,6 +258,8 @@ end
 addEvent("updateForumBox", true)
 addEventHandler("updateForumBox", root, updateForumBox)
 
+
+
 cooldown = false
 showing = false
 justClicked = false
@@ -274,44 +292,6 @@ end
 local hover = tocolor( 255, 0, 0, 255 )
 local mta_posxOffset, mta_posyOffset = 0,106
 local character_detail_yoffset = 0
-
--- تعريف الخط العربي - تم التصحيح
-local arabicFont = dxCreateFont(":resources/account/Tajawal-Regular.ttf", 12) or "default"
-local arabicFontBold = dxCreateFont(":resources/account/Tajawal-Bold.ttf", 12) or "default-bold"
-
--- إعدادات الأزرار - تم التعديل
-local buttonSettings = {
-    newCharacter = {
-        text = "إنشاء شخصية جديدة!",
-        x = 100,
-        y = 155,
-        width = 200,
-        height = 25,
-        textScale = 1.0
-    },
-    refresh = {
-        text = "تحديث الشخصيات",
-        x = 100,
-        y = 185,
-        width = 200,
-        height = 25,
-        textScale = 1.0
-    },
-    login = {
-        text = "تسجيل الدخول",
-        x = 100,
-        y = 215,
-        width = 200,
-        height = 25,
-        textScale = 1.0
-    }
-}
-
--- متغير للتحكم في تغيير الترحيب
-local lastGreetingChange = 0
-local currentGreeting = "أهلاً"
-local greetings = {"أهلاً", "مرحباً", "سلام", "هاي"}
-
 function renderAccountStats()
 	if isCursorShowing( ) then
 		cursorX, cursorY = getCursorPosition( )
@@ -322,132 +302,126 @@ function renderAccountStats()
 			cooldown = false
 		end
 	end
-
-	-- تغيير الترحيب كل 2 ثانية
-	if getTickCount() - lastGreetingChange > 2000 then
-		currentGreeting = greetings[math.random(#greetings)]
-		lastGreetingChange = getTickCount()
+--[[
+	width = dxGetTextWidth( greeting..", "..username, 0.7, "bankgothic" )+72
+	if width < 318 then
+		width = 318
 	end
+	]]
+	local width = 295
+	mta_posxOffset = swidth - width - 3
+	mta_posyOffset = 106 + character_detail_yoffset
 
-	local width = 350
-	mta_posxOffset = 10
-	mta_posyOffset = 80
-	local mta_box_height = 280
+	--MTA info box
+	local mta_box_height = 203
+	local fid = getElementData(localPlayer, "account:forumid")
 
-	-- الخلفية الرئيسية
-	dxDrawRectangle(mta_posxOffset, mta_posyOffset, width, mta_box_height, tocolor(3, 20, 23, 230), true)
-	
-	-- الخط الفاصل
-	dxDrawLine(mta_posxOffset + 10, mta_posyOffset + 50, mta_posxOffset + width - 10, mta_posyOffset + 50, tocolor(52, 171, 173, 255), 2, true)
-	
-	-- الصورة الشخصية - تم رفعها قليلاً
+	dxDrawRectangle(0+mta_posxOffset, 0+mta_posyOffset, width, mta_box_height, tocolor(0, 0, 0, 214), true)
+	dxDrawLine(5+mta_posxOffset, 57+mta_posyOffset, width+mta_posxOffset, 57+mta_posyOffset, tocolor(255, 255, 255, 255), 1, true)
 	avatar = getAvatar()
-	dxDrawImage(mta_posxOffset + 15, mta_posyOffset + 12, 40, 40, avatar and avatar.tex or ":cache/default.png", 0, 0, 0, tocolor(255, 255, 255, 255), true)
-	
-	-- الترحيب - باستخدام الترحيب المتغير
-	dxDrawText(currentGreeting.." "..username, mta_posxOffset + 65, mta_posyOffset + 15, mta_posxOffset + width - 10, mta_posyOffset + 45, tocolor(52, 171, 173, 255), 0.85, arabicFont, "right", "center", false, false, true, false, false)
-	
-	-- النقاط
-	dxDrawImage(mta_posxOffset + width - 25, mta_posyOffset + 55, 16, 16, ":donators/gamecoin.png", 0, 0, 0, tocolor(255, 255, 255, 255), true)
-	dxDrawText("النقاط:", mta_posxOffset + width - 120, mta_posyOffset + 55, mta_posxOffset + width - 30, mta_posyOffset + 75, tocolor(255, 255, 255, 255), 0.90, arabicFont, "right", "center", false, false, true, false, false)
-	dxDrawText(exports.global:formatMoney(credits), mta_posxOffset + 15, mta_posyOffset + 55, mta_posxOffset + width - 125, mta_posyOffset + 75, tocolor(52, 171, 173, 255), 0.90, arabicFont, "left", "center", false, false, true, false, false)
-	
-	-- الساعات
-	dxDrawText(": ساعات اللعب", mta_posxOffset + width - 120, mta_posyOffset + 80, mta_posxOffset + width - 30, mta_posyOffset + 100, tocolor(255, 255, 255, 255), 0.90, arabicFont, "right", "center", false, false, true, false, false)
-	dxDrawText(getElementData(localPlayer, "account:hours") or 0, mta_posxOffset + 15, mta_posyOffset + 80, mta_posxOffset + width - 125, mta_posyOffset + 100, tocolor(52, 171, 173, 255), 0.90, arabicFont, "left", "center", false, false, true, false, false)
-	
-	-- تاريخ الإنشاء
-	dxDrawText(": تاريخ الإنشاء", mta_posxOffset + width - 120, mta_posyOffset + 105, mta_posxOffset + width - 30, mta_posyOffset + 125, tocolor(255, 255, 255, 255), 0.90, arabicFont, "right", "center", false, false, true, false, false)
-	dxDrawText(createdDate, mta_posxOffset + 15, mta_posyOffset + 105, mta_posxOffset + width - 125, mta_posyOffset + 125, tocolor(52, 171, 173, 255), 0.85, arabicFont, "left", "center", false, false, true, false, false)
-	
-	-- آخر دخول
-	dxDrawText(": آخر تسجيل دخول", mta_posxOffset + width - 120, mta_posyOffset + 130, mta_posxOffset + width - 30, mta_posyOffset + 150, tocolor(255, 255, 255, 255), 0.90, arabicFont, "right", "center", false, false, true, false, false)
-	dxDrawText(lastLoginDate or "أبداً", mta_posxOffset + 15, mta_posyOffset + 130, mta_posxOffset + width - 125, mta_posyOffset + 150, tocolor(52, 171, 173, 255), 0.85, arabicFont, "left", "center", false, false, true, false, false)
+	dxDrawImage(5+mta_posxOffset, 3+mta_posyOffset, 50, 50, avatar and avatar.tex or ":cache/default.png" , 0, 0, 0, tocolor(255, 255, 255, 255), true)
+	dxDrawText(greeting..", "..username, 46+mta_posxOffset, mta_posyOffset-4, 302+mta_posxOffset, 72+mta_posyOffset, tocolor(255, 255, 255, 255), 0.70, "bankgothic", "center", "center", false, true, true, false, false)
+	w = dxGetTextWidth( credits )
+	dxDrawImage(75+mta_posxOffset, 66+mta_posyOffset, 14, 13, ":donators/gamecoin.png", 0, 0, 0, tocolor(255, 255, 255, 255), true)
+	dxDrawText("GameCoins:", 8+mta_posxOffset, 65+mta_posyOffset, 74, 107+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default-bold", "left", "top", false, false, true, false, false)
+	dxDrawText("Total Hours:", 170+mta_posxOffset, 65+mta_posyOffset, 242, 106+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default-bold", "left", "top", false, false, true, false, false)
+	dxDrawText(getElementData(localPlayer, "account:hours") or 0, 244+mta_posxOffset, 65+mta_posyOffset, 311, 109+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default", "left", "top", false, false, true, false, false)
+	dxDrawText(exports.global:formatMoney(credits), 89+mta_posxOffset, 65+mta_posyOffset, 111, 101+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default", "left", "top", false, false, true, false, false)
+	dxDrawText("Account Creation Date:", 8+mta_posxOffset, 88+mta_posyOffset, 137, 124+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default-bold", "left", "top", false, false, true, false, false)
+	dxDrawText(createdDate, 143+mta_posxOffset, 88+mta_posyOffset, 181, 125+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default", "left", "top", false, false, true, false, false)
+	dxDrawText("Last Played:", 8+mta_posxOffset, 106+mta_posyOffset, 74, 144+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default-bold", "left", "top", false, false, true, false, false)
+	dxDrawText(lastLoginDate or "Never", 81+mta_posxOffset, 106+mta_posyOffset, 171, 148+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default", "left", "top", false, false, true, false, false)
+	dxDrawText("Registered Email:", 8+mta_posxOffset, 125+mta_posyOffset, 113, 169+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default-bold", "left", "top", false, false, true, false, false)
+	dxDrawText(accountEmail, 113+mta_posxOffset, 125+mta_posyOffset, 165, 166+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default", "left", "top", false, false, true, false, false)
 
-    -- زر إنشاء شخصية جديدة
-    local btnNewChar = buttonSettings.newCharacter
-    local hoverNewChar = isInBox( cursorX, cursorY, 
-        mta_posxOffset + btnNewChar.x, 
-        mta_posxOffset + btnNewChar.x + btnNewChar.width, 
-        mta_posyOffset + btnNewChar.y, 
-        mta_posyOffset + btnNewChar.y + btnNewChar.height 
-    )
-    
-    local newCharColor = hoverNewChar and tocolor(52, 171, 173, 200) or tocolor(52, 171, 173, 120)
-    
-    dxDrawRectangle(mta_posxOffset + btnNewChar.x, mta_posyOffset + btnNewChar.y, btnNewChar.width, btnNewChar.height, newCharColor, true)
-    dxDrawText(btnNewChar.text, 
-        mta_posxOffset + btnNewChar.x, 
-        mta_posyOffset + btnNewChar.y, 
-        mta_posxOffset + btnNewChar.x + btnNewChar.width, 
-        mta_posyOffset + btnNewChar.y + btnNewChar.height, 
-        tocolor(255, 255, 255, 255), btnNewChar.textScale, arabicFont, "center", "center", false, false, true, false, false
-    )
-    
-    if justClicked and hoverNewChar then
-        if guiGetText(newCharacterButton_text) ~= "جاري التحقق من عدد الشخصيات..." then
-            guiSetText(newCharacterButton_text, "جاري التحقق من عدد الشخصيات...")
-            guiSetEnabled(newCharacterButton_text, false)
-            guiSetEnabled(newCharacterButton, false)
-            guiSetAlpha(newCharacterButton_text, 0.3)
-            triggerServerEvent('account:charactersQuotaCheck', resourceRoot)
-        end
+    -- Buttons
+    local hoverAccountHis = isInBox( cursorX, cursorY, 3+mta_posxOffset, 3 + width-6+mta_posxOffset, 148+mta_posyOffset, 148 + 18+mta_posyOffset )
+    dxDrawRectangle(3+mta_posxOffset, 148+mta_posyOffset, width-6, 18, hoverAccountHis and hover or tocolor(63, 63, 63, 174), true)
+    dxDrawText("Account History", 54+mta_posxOffset, 150+mta_posyOffset, width-54+mta_posxOffset, 183+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "arial", "center", "top", false, false, true, false, false) -- History
+    if justClicked and hoverAccountHis then
+    	triggerServerEvent("showAdminHistory", root, localPlayer)
     end
 
-    -- زر تحديث الشخصيات
-    local btnRefresh = buttonSettings.refresh
-    local hoverRefresh = isInBox( cursorX, cursorY, 
-        mta_posxOffset + btnRefresh.x, 
-        mta_posxOffset + btnRefresh.x + btnRefresh.width, 
-        mta_posyOffset + btnRefresh.y, 
-        mta_posyOffset + btnRefresh.y + btnRefresh.height 
-    )
-    
-    local refreshColor = hoverRefresh and tocolor(52, 171, 173, 200) or tocolor(52, 171, 173, 120)
-    local refreshTextColor = cooldown and cooldown>=getTickCount()-5000 and tocolor(255, 255, 255, 100) or tocolor(255, 255, 255, 255)
-    
-    dxDrawRectangle(mta_posxOffset + btnRefresh.x, mta_posyOffset + btnRefresh.y, btnRefresh.width, btnRefresh.height, refreshColor, true)
-    dxDrawText(btnRefresh.text, 
-        mta_posxOffset + btnRefresh.x, 
-        mta_posyOffset + btnRefresh.y, 
-        mta_posxOffset + btnRefresh.x + btnRefresh.width, 
-        mta_posyOffset + btnRefresh.y + btnRefresh.height, 
-        refreshTextColor, btnRefresh.textScale, arabicFont, "center", "center", false, false, true, false, false
-    )
-    
+    buttonWidth = width / 2 - 4
+    if fid then
+    	buttonWidth = buttonWidth * 2 + 2
+    end
+    local hoverRefresh = isInBox( cursorX, cursorY, 3+mta_posxOffset, 3 + buttonWidth+mta_posxOffset, 170+mta_posyOffset, 170 + 22+mta_posyOffset )
+    dxDrawRectangle(3+mta_posxOffset, 170+mta_posyOffset, buttonWidth, 22, hoverRefresh and hover or tocolor(63, 63, 63, 174), true) -- Refresh Chars
+    dxDrawText("Refresh Characters", 3+mta_posxOffset, 172+mta_posyOffset, buttonWidth+mta_posxOffset, 204+mta_posyOffset,  cooldown and cooldown>=getTickCount()-5000 and tocolor(255, 255, 255, 100) or tocolor(255, 255, 255, 255), 1.00, "arial", "center", "top", false, false, true, false, false)
     if justClicked and hoverRefresh and not cooldown then
-        triggerServerEvent("updateCharacters", resourceRoot, true)
-        cooldown = getTickCount()
+    	triggerServerEvent("updateCharacters", resourceRoot, true)
+    	cooldown = getTickCount()
     end
+    --[[if not fid then
+    	local hoverLink = isInBox( cursorX, cursorY, width-buttonWidth+mta_posxOffset, width-buttonWidth + buttonWidth+mta_posxOffset, 170+mta_posyOffset, 170 + 22+mta_posyOffset )
+    	dxDrawRectangle(width-buttonWidth-3+mta_posxOffset, 170+mta_posyOffset, buttonWidth, 22, hoverLink and hover or fid and tocolor(100, 200, 100, 174) or tocolor(63, 63, 63, 174), true)
+	    dxDrawText(fid and "Close" or "Link Forum Account", width-buttonWidth+3+mta_posxOffset, 173+mta_posyOffset, buttonWidth+width/2+mta_posxOffset, 209+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "arial", "center", "top", false, false, true, false, false) -- Link Forums account
+	    if justClicked and hoverLink then
+	    	if not fid then
+	    		linkForumAccount()
+	    	end
+	    end
+	end]]
 
-    -- زر تسجيل الدخول
-    local btnLogin = buttonSettings.login
-    local hoverLogin = isInBox( cursorX, cursorY, 
-        mta_posxOffset + btnLogin.x, 
-        mta_posxOffset + btnLogin.x + btnLogin.width, 
-        mta_posyOffset + btnLogin.y, 
-        mta_posyOffset + btnLogin.y + btnLogin.height 
-    )
-    
-    local loginColor = hoverLogin and tocolor(52, 171, 173, 200) or tocolor(52, 171, 173, 120)
-    
-    dxDrawRectangle(mta_posxOffset + btnLogin.x, mta_posyOffset + btnLogin.y, btnLogin.width, btnLogin.height, loginColor, true)
-    dxDrawText(btnLogin.text, 
-        mta_posxOffset + btnLogin.x, 
-        mta_posyOffset + btnLogin.y, 
-        mta_posxOffset + btnLogin.x + btnLogin.width, 
-        mta_posyOffset + btnLogin.y + btnLogin.height, 
-        tocolor(255, 255, 255, 255), btnLogin.textScale, arabicFont, "center", "center", false, false, true, false, false
-    )
-    
-    if justClicked and hoverLogin then
-        removeEventHandler("onClientRender", getRootElement(), renderNametags)
-        removeEventHandler("onClientRender", root, characterMouseOver)
-        fadeCamera ( false, 2, 0,0,0 )
-        setTimer(function()
-            triggerServerEvent("accounts:reconnectMe", localPlayer)
-        end, 2000,1)
-    end
+	--Forums info box
+	--[[if forum_box['show'] and fid then
+		mta_posyOffset = mta_posyOffset + mta_box_height + 3
+		dxDrawRectangle(0+mta_posxOffset, 0+mta_posyOffset, width, 203, tocolor(0, 0, 0, 214), true)
+		dxDrawLine(5+mta_posxOffset, 57+mta_posyOffset, width+mta_posxOffset, 57+mta_posyOffset, tocolor(255, 255, 255, 255), 1, true)
+		local avatar = exports.cache:getImage('http://owlgaming.net/favatar.php?id='..fid)
+		dxDrawImage(5+mta_posxOffset, 3+mta_posyOffset, 50, 50, avatar and avatar.tex or ':cache/default.png', 0, 0, 0, tocolor(255, 255, 255, 255), true)
+		dxDrawText(forum_box['name'] and (greeting..", "..forum_box['name']) or "Loading..", 46+mta_posxOffset, mta_posyOffset-4, 302+mta_posxOffset, 72+mta_posyOffset, tocolor(255, 255, 255, 255), 0.70, "bankgothic", "center", "center", false, true, true, false, false)
+		dxDrawText("Reputation:", 8+mta_posxOffset, 65+mta_posyOffset, 74, 107+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default-bold", "left", "top", false, false, true, false, false)
+		dxDrawText("Posts:", 170+mta_posxOffset, 65+mta_posyOffset, 242, 106+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default-bold", "left", "top", false, false, true, false, false)
+		dxDrawText(forum_box['posts'] and exports.global:formatMoney(forum_box['posts']) or "...", 214+mta_posxOffset, 65+mta_posyOffset, 311, 109+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default", "left", "top", false, false, true, false, false)
+		dxDrawText(forum_box['pp_reputation_points'] and exports.global:formatMoney(forum_box['pp_reputation_points']) or "...", 80+mta_posxOffset, 65+mta_posyOffset, 111, 101+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default", "left", "top", false, false, true, false, false)
+
+		mta_posyOffset = mta_posyOffset + 18
+
+		dxDrawText("Unread Msgs:", 8+mta_posxOffset, 65+mta_posyOffset, 74, 107+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default-bold", "left", "top", false, false, true, false, false)
+		dxDrawText("Warnings:", 170+mta_posxOffset, 65+mta_posyOffset, 242, 106+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default-bold", "left", "top", false, false, true, false, false)
+		dxDrawText(forum_box['warn_level'] and exports.global:formatMoney(forum_box['warn_level']) or "...", 234+mta_posxOffset, 65+mta_posyOffset, 311, 109+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default", "left", "top", false, false, true, false, false)
+		dxDrawText(forum_box['msg_count_new'] and (exports.global:formatMoney(forum_box['msg_count_new']).."/"..exports.global:formatMoney(forum_box['msg_count_total'])) or "...", 90+mta_posxOffset, 65+mta_posyOffset, 111, 101+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default", "left", "top", false, false, true, false, false)
+
+		dxDrawText("Last Activity:", 8+mta_posxOffset, 88+mta_posyOffset, 137, 124+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default-bold", "left", "top", false, false, true, false, false)
+		dxDrawText(forum_box['last_activity'] and forum_box['last_activity'] or "...", 100+mta_posxOffset, 88+mta_posyOffset, 181, 125+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default", "left", "top", false, false, true, false, false)
+		dxDrawText("Joined Date:", 8+mta_posxOffset, 106+mta_posyOffset, 74, 144+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default-bold", "left", "top", false, false, true, false, false)
+		dxDrawText(forum_box['joined'] and forum_box['joined'] or "...", 100+mta_posxOffset, 106+mta_posyOffset, 171, 148+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default", "left", "top", false, false, true, false, false)
+
+
+		dxDrawText("Registered Email:", 8+mta_posxOffset, 125+mta_posyOffset, 113, 169+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default-bold", "left", "top", false, false, true, false, false)
+		dxDrawText(forum_box['email'] and forum_box['email'] or "...", 113+mta_posxOffset, 125+mta_posyOffset, 165, 166+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "default", "left", "top", false, false, true, false, false)
+		mta_posyOffset = mta_posyOffset - 18
+	    -- Buttons
+
+	    local hoverAccountHis = isInBox( cursorX, cursorY, 3+mta_posxOffset, 3 + width-6+mta_posxOffset, 148+mta_posyOffset, 148 + 18+mta_posyOffset )
+	    dxDrawRectangle(3+mta_posxOffset, 148+mta_posyOffset, width-6, 18, hoverAccountHis and hover or tocolor(63, 63, 63, 174), true)
+	    dxDrawText("Account History", 54+mta_posxOffset, 150+mta_posyOffset, width-54+mta_posxOffset, 183+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "arial", "center", "top", false, false, true, false, false) -- History
+	    if justClicked and hoverAccountHis then
+	    	triggerServerEvent("showAdminHistory", root, localPlayer)
+	    end
+
+	    local hoverRefresh = isInBox( cursorX, cursorY, 3+mta_posxOffset, 3 + buttonWidth+mta_posxOffset, 170+mta_posyOffset, 170 + 22+mta_posyOffset )
+	    dxDrawRectangle(3+mta_posxOffset, 170+mta_posyOffset, buttonWidth, 22, hoverRefresh and hover or tocolor(63, 63, 63, 174), true) -- Refresh Chars
+	    dxDrawText("Remove Forum Link", 3+mta_posxOffset, 172+mta_posyOffset, buttonWidth+mta_posxOffset, 204+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "arial", "center", "top", false, false, true, false, false)
+	    if justClicked and hoverRefresh then
+	    	triggerServerEvent("forum:remove", resourceRoot)
+	    end
+
+	    local fid = getElementData(localPlayer, "account:forumid")
+	    local hoverLink = isInBox( cursorX, cursorY, width-buttonWidth+mta_posxOffset, width-buttonWidth + buttonWidth+mta_posxOffset, 170+mta_posyOffset, 170 + 22+mta_posyOffset )
+	    dxDrawRectangle(width-buttonWidth-3+mta_posxOffset, 170+mta_posyOffset, buttonWidth, 22, hoverLink and hover or fid and tocolor(100, 200, 100, 174) or tocolor(63, 63, 63, 174), true)
+	    dxDrawText(fid and "Remove Forum Link" or "Link Forum Account", width-buttonWidth+3+mta_posxOffset, 173+mta_posyOffset, buttonWidth+width/2+mta_posxOffset, 209+mta_posyOffset, tocolor(255, 255, 255, 255), 1.00, "arial", "center", "top", false, false, true, false, false) -- Link Forums account
+	    if justClicked and hoverLink then
+	    	if not fid then
+	    		linkForumAccount()
+	    	else
+	    		triggerServerEvent("forum:remove", resourceRoot)
+	    	end
+	    end
+
+	end]]
 
 	justClicked = false
 end
@@ -519,20 +493,56 @@ addEventHandler("forum:loginResult", resourceRoot, returnForumResults)
 function Characters_characterSelectionVisisble()
 	addEventHandler("onClientClick", getRootElement(), Characters_onClientClick)
 
-	-- إخفاء الأزرار القديمة
-	if isElement(bLogout) then
-		destroyElement(bLogout)
-	end
-	if isElement(newCharacterButton) then
-		destroyElement(newCharacterButton)
-	end
+	local width, height = 300, 50
 
+
+	bLogout = guiCreateStaticImage(swidth-width, 0, width, height, ":resources/window_body.png" , false, nil)
+	local text1= guiCreateLabel (0,0,1,1, "Logout", true, bLogout)
+	guiLabelSetHorizontalAlign(text1, "center", true)
+	guiLabelSetVerticalAlign(text1, "center", true)
+
+	addEventHandler("onClientGUIClick", bLogout, function ()
+		removeEventHandler("onClientRender", getRootElement(), renderNametags)
+		removeEventHandler("onClientRender", root, characterMouseOver)
+		fadeCamera ( false, 2, 0,0,0 )
+		setTimer(function()
+			triggerServerEvent("accounts:reconnectMe", localPlayer)
+			end, 2000,1)
+		end)
+
+	newCharacterButton = guiCreateStaticImage(swidth-width, 53, width, height, ":resources/window_body.png" , false, nil)
+	newCharacterButton_text = guiCreateLabel (0,0,1,1, "Create a new character!", true, newCharacterButton)
+	guiLabelSetHorizontalAlign(newCharacterButton_text, "center", true)
+	guiLabelSetVerticalAlign(newCharacterButton_text, "center", true)
+	addEventHandler("onClientGUIClick", newCharacterButton, function()
+		if source == newCharacterButton or source == newCharacterButton_text then
+			if guiGetText(newCharacterButton_text) ~= "Checking for characters quota..." then
+				guiSetText(newCharacterButton_text, "Checking for characters quota...")
+				guiSetEnabled(newCharacterButton_text, false)
+				guiSetEnabled(newCharacterButton, false)
+				guiSetAlpha(newCharacterButton_text, 0.3)
+				triggerServerEvent('account:charactersQuotaCheck', resourceRoot)
+			end
+		end
+	end)
+
+	local greetings = {
+		"Howdy",
+		"Welcome",
+		"Hello",
+		"Hey",
+		"Hi",
+	}
+	greeting = greetings[math.random(#greetings)]
 	showing = true
 	addEventHandler("onClientRender", root, renderAccountStats)
 end
 
 function charactersQuotaCheck(ok, why)
-	-- تحديث النص في الزر الجديد
+	guiSetText(newCharacterButton_text, why)
+	guiSetEnabled(newCharacterButton_text, true)
+	guiSetEnabled(newCharacterButton, true)
+	guiSetAlpha(newCharacterButton_text, 1)
 	if ok then
 		Characters_deactivateGUI()
 		characters_destroyDetailScreen()
@@ -572,66 +582,44 @@ end
 
 local font1 = dxCreateFont(':resources/nametags0.ttf')
 local font2 = dxCreateFont(':interior_system/intNameFont.ttf')
-
-function truncateText(text, maxLength)
-    if string.len(text) > maxLength then
-        return string.sub(text, 1, maxLength - 3) .. "..."
-    end
-    return text
-end
-
 function characterMouseOver()
-    local cursorX, cursorY
-    if isCursorShowing( ) then
-        local ped = getHoverElement()
-        if ped and isElement(ped) then
-            cursorX, cursorY = getCursorPosition( )
-            cursorX, cursorY = cursorX * swidth, cursorY * sheight
-            local ox, oy = cursorX-1053, cursorY-564
-            
-            -- صورة الشخصية
-            dxDrawImage(805+ox, 432+oy, 109, 105, "img/" .. ("%03d"):format(getElementModel(ped)) .. ".png", 0, 0, 0, tocolor(255, 255, 255, 255), true)
-            
-            -- معلومات الشخصية بالعربية
-            local tRace = "أسود"
-            local race = getElementData(ped, "account:charselect:race")
-            if race == 1 then
-                tRace = "أبيض"
-            elseif race == 2 then
-                tRace = "آسيوي"
-            end
-            
-            local genderText = getElementData(ped, "account:charselect:gender") == 0 and "ذكر" or "أنثى"
-            local statusText = getElementData(ped, "account:charselect:cked") > 0 and "ميت" or "حي"
-            
-            local text = "■ العرق: "..tRace..
-                       "\n■ الجنس: "..genderText..
-                       "\n■ الحالة: "..statusText..
-                       "\n■ العمر: "..getElementData(ped, "account:charselect:age")..
-                       "\n■ الطول: "..getElementData(ped, "account:charselect:height").."سم"..
-                       "\n■ الوزن: "..getElementData(ped, "account:charselect:weight").."كجم"..
-                       "\n■ ساعات اللعب: "..getElementData(ped, "account:charselect:hoursplayed").."س"
-            
-            -- الخلفية
-            dxDrawRectangle(910+ox, 430+oy, 140, 110, tocolor(3, 20, 23, 220), true)
-            
-            -- النص
-            dxDrawText(text, 915+ox, 435+oy, 1045+ox, 535+oy, tocolor(255, 255, 255, 255), 0.85, arabicFont, "right", "top", true, false, true, true, false)
-            
-            -- الخط السفلي
-            dxDrawLine(805+ox, 542+oy, 1017+ox, 542+oy, tocolor(52, 171, 173, 255), 2, true)
-            
-            -- نص الضغط للعب
-            local name = exports.global:explode(" ", getElementData(ped,"account:charselect:name"))[1]
-            local playText = "إضغط للعب كـ "..name
-            
-            dxDrawText(playText, 805+ox, 549+oy, 1017+ox, 565+oy, tocolor(52, 171, 173, 255), 1.00, arabicFont, "center", "center", true, false, true, false, false)
-            
-            updateCharacterAnim(ped)
-        end
-    end
+	local cursorX, cursorY
+	if isCursorShowing( ) then
+		local ped = getHoverElement()
+		if ped and isElement(ped) then
+			cursorX, cursorY = getCursorPosition( )
+			cursorX, cursorY = cursorX * swidth, cursorY * sheight
+			local ox, oy = cursorX-1053, cursorY-564
+			dxDrawImage(805+ox, 432+oy, 109, 105, "img/" .. ("%03d"):format(getElementModel(ped)) .. ".png", 0, 0, 0, tocolor(255, 255, 255, 255), true)
+			local tRace = "Black"
+			local race = getElementData(ped, "account:charselect:race")
+			if race == 1 then
+				tRace="White"
+			elseif race == 2 then
+				tRace="Asian"
+			end
+			local text = "■ Race: "..tRace.."\n■ Gender: "..(getElementData(ped, "account:charselect:gender") == 0 and "Male" or "Female").."\n■ Status: "..(getElementData(ped, "account:charselect:cked") > 0 and "#FF0000Dead" or "#00FF00Alive").."\n#FFFFFF■ Age: "..getElementData(ped, "account:charselect:age").."\n■ Height: "..getElementData(ped, "account:charselect:height").."cm\n■ Weight: "..getElementData(ped, "account:charselect:weight").."kg\n■ Played: "..getElementData(ped, "account:charselect:hoursplayed").."h"
+			local text2 = "■ Race: "..tRace.."\n■ Gender: "..(getElementData(ped, "account:charselect:gender") == 0 and "Male" or "Female").."\n■ Status: "..(getElementData(ped, "account:charselect:cked") > 0 and "Dead" or "Alive").."\n■ Age: "..getElementData(ped, "account:charselect:age").."\n■ Height: "..getElementData(ped, "account:charselect:height").."cm\n■ Weight: "..getElementData(ped, "account:charselect:weight").."kg\n■ Played: "..getElementData(ped, "account:charselect:hoursplayed").."h"
+			if not font1 then font1 = dxCreateFont(':resources/nametags0.ttf') end
+			dxDrawText(text2, 915+ox, 433+oy, 1050+ox, 538+oy, tocolor(0, 0, 0, 255), 1.00, font1 or "default", "left", "top", true, false, true, true, false)
+			dxDrawText(text2, 915+ox, 431+oy, 1050+ox, 536+oy, tocolor(0, 0, 0, 255), 1.00, font1 or "default", "left", "top", true, false, true, true, false)
+			dxDrawText(text2, 913+ox, 433+oy, 1048+ox, 538+oy, tocolor(0, 0, 0, 255), 1.00, font1 or "default", "left", "top", true, false, true, true, false)
+			dxDrawText(text2, 913+ox, 431+oy, 1048+ox, 536+oy, tocolor(0, 0, 0, 255), 1.00, font1 or "default", "left", "top", true, false, true, true, false)
+			dxDrawText(text, 914+ox, 432+oy, 1049+ox, 537+oy, tocolor(255, 255, 255, 255), 1.00, font1 or "default", "left", "top", true, false, true, true, false)
+			dxDrawLine(805+ox, 542+oy, 1017+ox, 542+oy, tocolor(255, 255, 255, 255), 1, true)
+			dxDrawLine(1017+ox, 542+oy, 1054+ox, 563+oy, tocolor(255, 255, 255, 255), 1, true)
+			local name = exports.global:explode(" ", getElementData(ped,"account:charselect:name"))[1]
+			text = string.upper("Click to play as "..name)
+			if not font2 then font2 = dxCreateFont(':interior_system/intNameFont.ttf') end
+			dxDrawText(text, 805+ox, 549+oy, 1017+ox, 565+oy, tocolor(0, 0, 0, 255), 1.00, font2 or "default", "center", "center", true, false, true, false, false)
+			dxDrawText(text, 805+ox, 547+oy, 1017+ox, 563+oy, tocolor(0, 0, 0, 255), 1.00, font2 or "default", "center", "center", true, false, true, false, false)
+			dxDrawText(text, 803+ox, 549+oy, 1015+ox, 565+oy, tocolor(0, 0, 0, 255), 1.00, font2 or "default", "center", "center", true, false, true, false, false)
+			dxDrawText(text, 803+ox, 547+oy, 1015+ox, 563+oy, tocolor(0, 0, 0, 255), 1.00, font2 or "default", "center", "center", true, false, true, false, false)
+			dxDrawText(text, 804+ox, 548+oy, 1016+ox, 564+oy, tocolor(255, 255, 255, 255), 1.00, font2 or "default", "center", "center", true, false, true, false, false)
+			updateCharacterAnim(ped)
+		end
+	end
 end
-
 local lastCharAnim = nil
 function updateCharacterAnim(theElement)
 	if not theElement then lastCharAnim = nil end
@@ -644,13 +632,17 @@ function updateCharacterAnim(theElement)
 	end
 end
 
+
+
 function getCamSpeed( index1, startCam1, endCam1, globalspeed1)
 return (math.abs(startCam1[index1]-endCam1[index1])/globalspeed1)
 end
 
+--Check c_login.lua for settings block
 function Characters_updateSelectionCamera ()
 	for var = 1, 6, 1 do
 		if not doneCam[selectionScreenID][var] then
+			--outputDebugString("if not doneCam[selectionScreenID][var] then")
 			if (math.abs(startCam[selectionScreenID][var] - endCam[selectionScreenID][var]) > 0.2) then
 			if startCam[selectionScreenID][var] > endCam[selectionScreenID][var] then
 			startCam[selectionScreenID][var] = startCam[selectionScreenID][var] - getCamSpeed( var, startCam[selectionScreenID], endCam[selectionScreenID], globalspeed)
@@ -725,8 +717,14 @@ function Characters_onClientClick(mouseButton, state, alsoluteX, alsoluteY, worl
 	end
 	justClicked = state=="up"
 end
+--- Character detail screen
+local wDetailScreen, lDetailScreen, iCharacterImage, bPlayAs,cFadeOutTime = nil
 
 function Characters_deactivateGUI()
+	if isElement(bLogout) then
+		guiSetEnabled( newCharacterButton, false )
+		guiSetEnabled( bLogout, false )
+	end
 	removeEventHandler("onClientRender", getRootElement(), renderNametags)
 	removeEventHandler("onClientRender", root, renderAccountStats)
 	showing = false
@@ -748,6 +746,7 @@ function Characters_FadeOut()
 end
 
 function characters_destroyDetailScreen()
+	lDetailScreen = { }
 	if isElement(wDetailScreen) then
 		destroyElement(iCharacterImage)
 		destroyElement(bPlayAs)
@@ -756,6 +755,7 @@ function characters_destroyDetailScreen()
 		iPlayAs = nil
 		wDetailScreen = nil
 		character_detail_yoffset = 0
+
 	end
 	for _, thePed in ipairs(pedTable) do
 		if isElement(thePed) then
@@ -773,12 +773,14 @@ function characters_destroyDetailScreen()
 	removeEventHandler("onClientRender", root, renderAccountStats)
 	showing = false
 end
+--- End character detail screen
 
 function characters_onSpawn(fixedName, adminLevel, gmLevel, location)
 	clearChat()
 	showChat(true)
 	guiSetInputEnabled(false)
 	showCursor(false)
+	--outputChatBox("You are now playing as '" .. fixedName .. "'.", 0, 255, 0)
 	outputChatBox("Press F1 for Help.", 255, 194, 14)
 	outputChatBox("You can visit the Options menu by pressing 'F10' or /home.", 255, 194, 15)
 	outputChatBox(" ")
@@ -787,7 +789,9 @@ function characters_onSpawn(fixedName, adminLevel, gmLevel, location)
 	setElementData(localPlayer, "admin_level", adminLevel, false)
 	setElementData(localPlayer, "account:gmlevel", gmLevel, false)
 
+	-- Adams
 	options_enable()
+	--Stop bgMusic + spawning sound fx / maxime
 	stopLoginSound()
 	if toggleSoundLabel then 
 		destroyElement(toggleSoundLabel)
@@ -797,8 +801,8 @@ function characters_onSpawn(fixedName, adminLevel, gmLevel, location)
 	setTimer(function(expectedLocation)
 		local currentPositionX, currentPositionY = getElementPosition(localPlayer)
 		local expectedPositionX, expectedPositionY = expectedLocation[1], expectedLocation[2]
-		if getDistanceBetweenPoints2D( currentPositionX, currentPositionY, unpack( defaultCharacterSelectionSpawnPosition ) ) < 20 and
-				getDistanceBetweenPoints2D( expectedPositionX, expectedPositionY, unpack( defaultCharacterSelectionSpawnPosition ) ) > 20 then
+		if getDistanceBetweenPoints2D( currentPositionX, currentPositionY, unpack( defaultCharacterSelectionSpawnPosition ) ) < 20 and -- we are near angel pine
+				getDistanceBetweenPoints2D( expectedPositionX, expectedPositionY, unpack( defaultCharacterSelectionSpawnPosition ) ) > 20 then -- but we shouldn't actually be near angel pine
 			outputDebugString('We got stuck in a river near Angel Pine, oooh~', 2)
 			triggerServerEvent('accounts:characters:fixCharacterSpawnPosition', localPlayer, expectedLocation)
 		end
@@ -837,7 +841,6 @@ function soundFadeOut(sound, decrease, dataKey)
 		end
 	end
 end
-
 function startSoundFadeOut(sound, timeInterval, timesToExecute, decrease, dataKey)
 	if not sound or not isElement(sound) then return false end
 	if not tonumber(timeInterval) then timeInterval = 100 end
@@ -846,7 +849,6 @@ function startSoundFadeOut(sound, timeInterval, timesToExecute, decrease, dataKe
 	soundFadeTimer = setTimer(soundFadeOut, timeInterval, timesToExecute, sound, decrease, dataKey)
 	setTimer(forceStopSound, 4000, 1, sound, dataKey)
 end
-
 function forceStopSound(sound, dataKey)
 	if sound and isElement(sound) then
 		destroyElement(sound)
